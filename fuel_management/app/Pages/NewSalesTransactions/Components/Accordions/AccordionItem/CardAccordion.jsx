@@ -8,7 +8,8 @@ import AddCard from '../../Modals/AddCard';
 
 export const CardAccordion = ({
     cardData,
-    setCardData
+    setCardData,
+    paymentModeList
 }) => {
     const [inHouse, setInhouse] = useState({
         title: "Check Payments",
@@ -32,6 +33,7 @@ export const CardAccordion = ({
                 purpose={purpose}
                 editData={editData}
                 setEditData={setEditData}
+                paymentModeList={paymentModeList}
             />
 
             <div className="w-full flex justify-end py-4">
@@ -80,6 +82,7 @@ export const CardAccordion = ({
                                         setPurpose={setPurpose}
                                         setOpenAdd={setOpenAdd}
                                         setEditData={setEditData}
+                                        paymentModeList={paymentModeList}
                                     />
                                 </tr>
                             )

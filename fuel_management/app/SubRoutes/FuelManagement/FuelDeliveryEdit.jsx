@@ -157,7 +157,7 @@ useEffect( () => {
       const getData = async () => {
 
         if (selectedStation !== '' && selectedStation !== undefined) {
-          const result = await fetchStationShiftManagers(selectedStation)
+          const result = await fetchStationStationManagers(selectedStation)
           let tmpResultShiftManagers = []
           for (let item of result) {
             tmpResultShiftManagers.push({
@@ -181,7 +181,7 @@ useEffect( () => {
         }
 
         if ( (selectedStation !== '' && selectedStation !== undefined) && (selectedShift !== '' && selectedShift !== undefined) ) {
-          const result = await fetchStationStationManagers(selectedStation, selectedShift)
+          const result = await fetchStationShiftManagers(selectedStation, selectedShift)
           let tmpResultStationManagers = []
           for (let item of result) {
             tmpResultStationManagers.push({

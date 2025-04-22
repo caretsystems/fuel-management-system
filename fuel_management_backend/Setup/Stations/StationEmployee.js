@@ -83,7 +83,7 @@ router.get("/Station/:stationId/:shiftId/StationManager", async (req, res) => {
             JOIN    public.dropdown dd 
                 ON emp.designationid = dd.id 
             WHERE 1=1
-            AND	dd.name = 'Station Manager'
+            AND	dd.name in ('Station Manager')
             AND a.stationid = ANY ($1::int[])
             AND a.shiftid = ANY ($2::int[]) 
       `, [stationIdsArray, shiftIdsArray]); 
@@ -94,6 +94,8 @@ router.get("/Station/:stationId/:shiftId/StationManager", async (req, res) => {
         res.status(500).json({ error: "Database query error"});
     }
 });
+
+
 
 
 module.exports = router;

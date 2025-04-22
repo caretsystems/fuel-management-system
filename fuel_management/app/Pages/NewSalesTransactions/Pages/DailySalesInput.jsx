@@ -23,7 +23,8 @@ const DailySalesInput = ({
     selectedStation,
     selectedShiftManager,
     selectedShift,
-    employee
+    employee,
+    shiftStationManagers
 }) => {
     const [cashData, setCashData] = useState({
         content: [],
@@ -367,7 +368,7 @@ const DailySalesInput = ({
                 {selectedMode != 3 ?
                     <CashierInput
                         selectedMode={selectedMode}
-                        employee={employee}
+                        employee={shiftStationManagers}
                         cashData={cashData}
                         setCashData={setCashData}
                         poData={poData}

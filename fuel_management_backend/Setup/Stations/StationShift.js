@@ -7,6 +7,8 @@ router.get("/station/:stationId/shifts", async (req, res) => {
 
   try {
     const { stationId } = req.params;
+    
+    const stationIdsArray = stationId.split(',').map(id => parseInt(id.trim()));
 
     await client.query("BEGIN");
 
@@ -20,8 +22,8 @@ router.get("/station/:stationId/shifts", async (req, res) => {
       FROM        stationShift a
       INNER JOIN  shift b
               ON  a.shiftId = b.id
-      WHERE       a.stationId = $1
-    `, [stationId]);
+      WHERE       a.stationId = ANY ($1::int[]) 
+    `, [stationIdsArray]);
 
     await client.query("COMMIT");
 
@@ -36,6 +38,45 @@ router.get("/station/:stationId/shifts", async (req, res) => {
     client.release();
   }
 });
+
+
+
+router.get("/station/:stationId/shifts2", async (req, res) => {
+  const client = await pool.connect();
+
+  try {
+    const { stationId } = req.params;
+    
+    const stationIdsArray = stationId.split(',').map(id => parseInt(id.trim()));
+
+    await client.query("BEGIN");
+
+    const result = await client.query(`
+      SELECT   distinct   
+        b.id, 
+        b.name, 
+        b.details
+      FROM        stationShift a
+      INNER JOIN  shift b
+          ON  a.shiftId = b.id
+      WHERE       a.stationId = ANY ($1::int[]) 
+      and b.status = true
+    `, [stationIdsArray]);
+
+    await client.query("COMMIT");
+
+    res.status(201).json(result.rows);
+  }
+  catch (err) {
+    await client.query("ROLLBACK");
+
+    res.status(500).json({ error: "Database query error" });
+  }
+  finally {
+    client.release();
+  }
+});
+
 
 router.get("/station/:stationId/:shiftmanagerId/shifts2", async (req, res) => {
   try {
@@ -65,6 +106,10 @@ router.get("/station/:stationId/:shiftmanagerId/shifts2", async (req, res) => {
     res.status(500).json({ error: "Database query error" });
   }
 });
+
+
+
+
 
 router.get("/station/:stationId/shifts/:id", async (req, res) => {
   const client = await pool.connect();

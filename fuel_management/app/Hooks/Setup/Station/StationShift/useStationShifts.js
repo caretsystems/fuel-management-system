@@ -12,6 +12,17 @@ const fetchStationShifts = async (stationId) => {
     }
 };
 
+const fetchStationShifts3 = async (stationId) => {
+    try {
+        const response = await apiClient.get(`${endPoints.Stations}/Station/${stationId}/Shifts2`);
+
+        return response.data;
+    }
+    catch (error) {
+        throw error;
+    }
+};
+
 const fetchStationShifts2 = async (stationId, shiftmanagerid) => {
     try {
         const response = await apiClient.get(`${endPoints.Stations}/Station/${stationId}/${shiftmanagerid}/Shifts2`);
@@ -27,4 +38,5 @@ const fetchStationShifts2 = async (stationId, shiftmanagerid) => {
 export {
     fetchStationShifts,
     fetchStationShifts2, 
+    fetchStationShifts3,
 };

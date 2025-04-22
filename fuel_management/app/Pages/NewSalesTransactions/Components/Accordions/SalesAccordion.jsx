@@ -16,7 +16,10 @@ const SalesAccordion = ({
     redemptionData,
     setRedemptionData,
     cardData,
-    setCardData
+    setCardData,
+    productList, 
+    customerList,
+    paymentModeList
 }) => {
 
     return (
@@ -94,6 +97,8 @@ const SalesAccordion = ({
                     <InHouseAccordion
                         poData={poData}
                         setPoData={setPoData}
+                        productList={productList}
+                        customerList={customerList}
                     />
                 </AccordionItem>
             )}
@@ -109,6 +114,7 @@ const SalesAccordion = ({
                 <RedemptionAccordion
                     redemptionData={redemptionData}
                     setRedemptionData={setRedemptionData}
+                    paymentModeList={paymentModeList}
                 />
             </AccordionItem>
             <AccordionItem
@@ -123,6 +129,7 @@ const SalesAccordion = ({
                 <CardAccordion
                     cardData={cardData}
                     setCardData={setCardData}
+                    paymentModeList={paymentModeList}
                 />
             </AccordionItem>
         </Accordion>

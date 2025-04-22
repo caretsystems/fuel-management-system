@@ -16,14 +16,17 @@ export const CashRows = ({ index, data, content, setContent }) => {
                 if (item.id == index) {
                     return {
                         ...item,
-                        amount: Number(bill),
+                        amount: Number(bill*quantity ),
                         bill: bill,
                         quantity: Number(quantity)
                     }
                 }
+
                 return item
             })
-            setContent(tempArray)
+            setContent(tempArray) 
+
+            console.log(tempArray)
         }
         updateData()
     }, [bill, quantity])
@@ -33,7 +36,7 @@ export const CashRows = ({ index, data, content, setContent }) => {
             <td className="px-1">
                 <div className="min-w-32">
                     <SimpleSelect
-                        label={""}
+                        label={"no-label"}
                         items={Bills}
                         passedValue={bill}
                         toUpdate={setBill}
@@ -51,7 +54,7 @@ export const CashRows = ({ index, data, content, setContent }) => {
                 />
             </td>
             <td className="px-1 min-w-36">
-                <p className="w-full text-right bg-gray-100 p-2 font-semibold rounded-md">{CurrencyFormatter(Number(bill))}</p>
+                <p className="w-full text-right bg-gray-100 p-2 font-semibold rounded-md">{CurrencyFormatter(Number(bill)*Number(quantity))}</p>
             </td>
         </>
     )

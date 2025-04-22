@@ -7,7 +7,8 @@ import AddLubricant from '../../Modals/AddLubricant';
 
 const LubricantSalesAccordion = ({
     lubricantSalesData,
-    setLubricantSalesData
+    setLubricantSalesData,
+    fuelLubes
 }) => {
     const [lubricantSales, setLubricantSales] = useState({
         title: "Forecourt Lubricant Sales",
@@ -33,6 +34,7 @@ const LubricantSalesAccordion = ({
                 purpose={purpose}
                 editData={editData}
                 setEditData={setEditData}
+                fuelLubes={fuelLubes}
             />
 
             <div className="w-full flex justify-end py-4">
@@ -81,6 +83,7 @@ const LubricantSalesAccordion = ({
                                         setPurpose={setPurpose}
                                         setOpenAdd={setOpenAdd}
                                         setEditData={setEditData}
+                                        fuelLubes={fuelLubes}
                                     />
                                 </tr>
                             )

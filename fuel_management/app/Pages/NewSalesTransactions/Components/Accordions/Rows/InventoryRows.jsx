@@ -2,10 +2,11 @@ import SimpleInput from "~/Components/SimpleInput"
 import { useEffect, useState } from "react"
 import { Button } from "@heroui/react";
 import SimpleSelect from "~/Components/SimpleSelect";
-import CurrencyFormatter from "~/Components/Lib/CurrencyFormatter";
-import { InventoryItems } from "~/Constants/Labels";
+import CurrencyFormatter from "~/Components/Lib/CurrencyFormatter"; 
 
-export const InventoryRows = ({ index, data, inventoryData, setInventoryData }) => {
+
+
+export const InventoryRows = ({ index, data, inventoryData, setInventoryData, invCategoryList }) => {
     const [inventory, setInventory] = useState(data?.inventory)
     const [quantity, setQuantity] = useState(data?.quantity)
     const [amount, setAmount] = useState(data?.amount)
@@ -40,7 +41,7 @@ export const InventoryRows = ({ index, data, inventoryData, setInventoryData }) 
                 <div className="min-w-32">
                     <SimpleSelect
                         label={""}
-                        items={InventoryItems}
+                        items={invCategoryList}
                         passedValue={inventory}
                         toUpdate={setInventory}
                     />

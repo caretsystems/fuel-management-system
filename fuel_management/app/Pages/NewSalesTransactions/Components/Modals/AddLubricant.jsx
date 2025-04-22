@@ -13,9 +13,9 @@ import { useState, useEffect } from "react";
 import { CashRows } from "../Accordions/Rows/CashRows";
 import CurrencyFormatter from "~/Components/Lib/CurrencyFormatter";
 import SimpleSelect from "~/Components/SimpleSelect";
-import { Lubricants, SampleEmployeeName } from "~/Constants/Labels";
+import { SampleEmployeeName } from "~/Constants/Labels";
 
-const AddLubricant = ({ openModal, setOpenModal, content, setContent, title, purpose, editData, setEditData }) => {
+const AddLubricant = ({ openModal, setOpenModal, content, setContent, title, purpose, editData, setEditData, fuelLubes }) => {
     const [lubricant, setLubricant] = useState('')
     const [quantity, setQuantity] = useState(0)
     const [amount, setAmount] = useState(0)
@@ -126,9 +126,10 @@ const AddLubricant = ({ openModal, setOpenModal, content, setContent, title, pur
                     <div className="h-auto grid gap-4">
                         <SimpleSelect
                             label={"Lubricants"}
-                            items={Lubricants}
+                            items={fuelLubes}
                             passedValue={lubricant}
                             toUpdate={setLubricant}
+                            allowSearch={true}
                         />
                         <SimpleInput
                             version={3}

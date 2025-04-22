@@ -13,22 +13,30 @@ import { useState, useEffect } from "react";
 import { CashRows } from "../Accordions/Rows/CashRows";
 import CurrencyFormatter from "~/Components/Lib/CurrencyFormatter";
 import SimpleSelect from "~/Components/SimpleSelect";
-import { PurchaseOrder, SampleEmployeeName } from "~/Constants/Labels";
-import { fetchCustomers } from "~/Hooks/Setup/GlobalRecords/Customer/useCustomers";
+import { PurchaseOrder, SampleEmployeeName } from "~/Constants/Labels"; 
 
-const AddPo = ({ openModal, setOpenModal, content, setContent, title, purpose, editData, setEditData }) => {
+const AddPo = ({ openModal, setOpenModal, content, setContent, title, purpose, editData, setEditData, productList, customerList }) => {
     const [invoiceNo, setInvoiceNo] = useState('')
     const [customerName, setCustomerName] = useState('')
     const [taxCode, setTaxCode] = useState('')
+    const [custPONumber, setCustPONumber] = useState('')
     const [product, setProduct] = useState('')
     const [quantity, setQuantity] = useState(null)
     const [poAmount, setPoAmount] = useState(null)
     const [customers, setCustomers] = useState([])
 
+
+
     useEffect(() => {
         const compute = async () => {
-            const res = await fetchCustomers()
-            setCustomers(res)
+            const formattedCustomers = customerList.map((customer) => ({
+                id: customer.id,
+                description: customer.name, // Adjust based on your API response
+                taxCode: customer.taxCode
+            }));
+            setCustomers(formattedCustomers);
+            
+
             if (purpose === "edit" && editData !== undefined) {
                 setInvoiceNo(editData?.invoiceNo)
                 setCustomerName(editData?.customerName)
@@ -36,6 +44,7 @@ const AddPo = ({ openModal, setOpenModal, content, setContent, title, purpose, e
                 setProduct(editData?.product)
                 setQuantity(editData?.quantity)
                 setPoAmount(editData?.poAmount)
+                setCustPONumber(editData?.custPONumber)
             } else {
                 setInvoiceNo('')
                 setCustomerName('')
@@ -43,11 +52,23 @@ const AddPo = ({ openModal, setOpenModal, content, setContent, title, purpose, e
                 setProduct('')
                 setQuantity(null)
                 setPoAmount(null)
+                setCustPONumber('')
             }
         }
         compute()
     }, [editData?.id, openModal])
 
+    useEffect(()=>{
+        if (customerName) {
+            const selectedCustomer = customers.find((customer) => customer.id === customerName);
+            if (selectedCustomer) {
+                setTaxCode(selectedCustomer.taxCode); // Set the tax code based on the selected customer
+            } else {
+                setTaxCode(''); // Reset tax code if no match is found
+            }
+        }
+    },[customerName])
+    
     const submitHandler = async () => {
         if (purpose === 'add') {
             let tempArray = content?.content.concat([
@@ -58,7 +79,8 @@ const AddPo = ({ openModal, setOpenModal, content, setContent, title, purpose, e
                     taxCode: taxCode,
                     product: product,
                     quantity: Number(quantity),
-                    poAmount: Number(poAmount)
+                    poAmount: Number(poAmount),
+                    custPONumber: custPONumber
                 }
             ])
             setContent({
@@ -72,6 +94,7 @@ const AddPo = ({ openModal, setOpenModal, content, setContent, title, purpose, e
             setQuantity(null)
             setPoAmount(null)
             setOpenModal(!openModal)
+            setCustPONumber('')
         } 
         else if (purpose === 'edit') {
             let tempArray = content?.content.map((item) => {
@@ -83,7 +106,8 @@ const AddPo = ({ openModal, setOpenModal, content, setContent, title, purpose, e
                         taxCode: taxCode,
                         product: product,
                         quantity: Number(quantity),
-                        poAmount: Number(poAmount)
+                        poAmount: Number(poAmount),
+                        custPONumber: custPONumber
                     }
                 }
                 return item
@@ -99,6 +123,7 @@ const AddPo = ({ openModal, setOpenModal, content, setContent, title, purpose, e
             setQuantity(null)
             setPoAmount(null)
             setOpenModal(!openModal)
+            setCustPONumber('')
         }
     }
 
@@ -115,6 +140,7 @@ const AddPo = ({ openModal, setOpenModal, content, setContent, title, purpose, e
         setQuantity(null)
         setPoAmount(null)
         setOpenModal(!openModal)
+        setCustPONumber('')
     }
 
     return (
@@ -131,6 +157,7 @@ const AddPo = ({ openModal, setOpenModal, content, setContent, title, purpose, e
                 setPoAmount(null)
                 setOpenModal(!openModal)
                 setEditData(undefined)
+                setCustPONumber('')
             }}
             radius="none">
             <ModalContent>
@@ -154,12 +181,20 @@ const AddPo = ({ openModal, setOpenModal, content, setContent, title, purpose, e
                             label={"Tax Code"}
                             initialValue={taxCode}
                             setInitialValue={setTaxCode}
+                            isReadOnly={true}
+                        />
+                        <SimpleInput
+                            version={3}
+                            label={"Customer PO No."}
+                            initialValue={custPONumber}
+                            setInitialValue={setCustPONumber}
                         />
                         <SimpleSelect
                             label={"Product"}
-                            items={PurchaseOrder}
+                            items={productList}
                             passedValue={product}
                             toUpdate={setProduct}
+                            allowSearch={true}
                         />
                         <SimpleInput
                             version={3}
@@ -192,6 +227,7 @@ const AddPo = ({ openModal, setOpenModal, content, setContent, title, purpose, e
                                 setPoAmount(null)
                                 setOpenModal(!openModal)
                                 setEditData(undefined)
+                                setCustPONumber('')
                             }}
                         >
                             Close

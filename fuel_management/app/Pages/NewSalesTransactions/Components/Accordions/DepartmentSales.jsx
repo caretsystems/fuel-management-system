@@ -21,7 +21,10 @@ const DepartmentSales = ({
     setCheckData,
     inventoryData,
     setInventoryData,
-    employee
+    employee,
+    invCategoryList,
+    fuelLubes
+
 }) => {
     return (
         <Accordion
@@ -81,6 +84,7 @@ const DepartmentSales = ({
                     <InventoryAccordion 
                         inventoryData={inventoryData}
                         setInventoryData={setInventoryData}
+                        invCategoryList={invCategoryList}
                     />
                 </AccordionItem>
             )}
@@ -97,6 +101,7 @@ const DepartmentSales = ({
                     <LubricantSalesAccordion
                         lubricantSalesData={lubricantSalesData}
                         setLubricantSalesData={setLubricantSalesData}
+                        fuelLubes={fuelLubes}
                     />
                 </AccordionItem>
             )}

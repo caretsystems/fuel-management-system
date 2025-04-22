@@ -42,9 +42,8 @@ router.get('/', async (req, res) => {
 })
 
 router.get("/stations", async (req, res) => {
-  const client = await pool.connect();
-
-  try {
+  const client = await pool.connect(); 
+  try { 
     await client.query("BEGIN");
 
     const result = await client.query(`
@@ -72,15 +71,17 @@ router.get("/stations", async (req, res) => {
     await client.query("COMMIT");
 
     return res.status(201).json({
-      success: true,
-      message: "Successfully fetched stations",
-      body: result.rows,
+      success: true, 
+      message: "Successfully fetched stations", 
+      body: result.rows 
     });
   }
   catch (err) {
     await client.query("ROLLBACK");
 
-    return res.status(500).json({ success: false, message: "Database query error" });
+    return res.status(500).json({ 
+      success: false, 
+      message: "Database query error",  });
     // res.status(500).json({ error: "Database query error" });
   }
   finally {
@@ -88,6 +89,59 @@ router.get("/stations", async (req, res) => {
   }
 });
 
+router.get("/stations/:userId/user", async (req, res) => {
+  const client = await pool.connect(); 
+  try { 
+    await client.query("BEGIN");
+    
+    const { userId } = req.params;
+
+    const result = await client.query(`
+      SELECT      a.id,
+                  a.code,
+                  a.name,
+                  a.details,
+                  a.address,
+                  a.provinceId,
+                  a.province,
+                  a.cityId,
+                  a.city,
+                  a.barangayId,
+                  a.barangay barangay,
+                  a.openingTime,
+                  a.closingTime,
+                  a.pumps,
+                  a.nozzles,
+                  a.fillingPosition,
+                  a.posStation,
+                  a.shipToNumber
+      FROM        station a
+      JOIN        userstationassignments b
+      ON a.id=b.stationid
+      where b.userid= $1
+    `,[userId]);
+
+    await client.query("COMMIT");
+
+    return res.status(201).json({
+      success: true, 
+      message: "Successfully fetched stations", 
+      body: result.rows 
+    });
+  }
+  catch (err) {
+    await client.query("ROLLBACK");
+
+    return res.status(500).json({ 
+      success: false, 
+      message: "Database query error",  });
+    // res.status(500).json({ error: "Database query error" });
+  }
+  finally {
+    client.release();
+  }
+});
+ 
 router.get("/stations/:id", async (req, res) => {
   const client = await pool.connect();
 

@@ -2,14 +2,14 @@ import { Button } from "@heroui/react";
 import CurrencyFormatter from "~/Components/Lib/CurrencyFormatter";
 import { Lubricants, SampleEmployeeName } from "~/Constants/Labels";
 
-export const LubricantSalesRows = ({ currentData, content, setContent, setPurpose, setOpenAdd, setEditData }) => {
+export const LubricantSalesRows = ({ currentData, content, setContent, setPurpose, setOpenAdd, setEditData, fuelLubes }) => {
     return (
         <>
             <td className="px-6 py-1">
                 {currentData?.id + 1}
             </td>
             <td className="px-6 py-1">
-                {Lubricants.filter((item)=>item.id==currentData?.lubricant)[0]?.description}
+                {fuelLubes.filter((item)=>item.id==currentData?.lubricant)[0]?.description}
             </td>
             <td className="px-6 py-1">
                 {currentData?.quantity}

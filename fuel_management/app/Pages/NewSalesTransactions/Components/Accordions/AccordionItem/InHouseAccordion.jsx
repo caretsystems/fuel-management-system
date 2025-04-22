@@ -7,7 +7,9 @@ import CurrencyFormatter from "~/Components/Lib/CurrencyFormatter";
 
 export const InHouseAccordion = ({
     poData,
-    setPoData
+    setPoData,
+    productList,
+    customerList
 }) => {
     const [inHouse, setInhouse] = useState({
         title: "P.O. Inhouse Account",
@@ -34,6 +36,8 @@ export const InHouseAccordion = ({
                 purpose={purpose}
                 editData={editData}
                 setEditData={setEditData}
+                productList={productList}
+                customerList={customerList}
             />
 
             <div className="w-full flex justify-end py-4">
@@ -82,6 +86,8 @@ export const InHouseAccordion = ({
                                         setPurpose={setPurpose}
                                         setOpenAdd={setOpenAdd}
                                         setEditData={setEditData}
+                                        productList={productList}
+                                        customerList={customerList}
                                     />
                                 </tr>
                             )

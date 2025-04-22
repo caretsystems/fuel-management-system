@@ -24,13 +24,25 @@ const useFetchStationId = (id) => {
   })
 }
 
-const fetchStations = async () => {
+
+const fetchUserStations = async (userId) => {
     try {
-        const response = await apiClient.get(`${endPoints.Stations}/Stations`);
+        const response = await apiClient.get(`${endPoints.Stations}/stations/${userId}/user`);
 
         return response.data;
     }
-    catch (error) {
+    catch (error) { 
+        throw error;
+    }
+};
+
+const fetchStations = async () => {
+    try {
+        const response = await apiClient.get(`${endPoints.Stations}/stations`);
+
+        return response.data;
+    }
+    catch (error) { 
         throw error;
     }
 };
@@ -80,6 +92,7 @@ const deleteStation = async (id) => {
 };
 
 export { 
+    fetchUserStations,
     useFetchStations,
     useFetchStationId,
     fetchStations, 

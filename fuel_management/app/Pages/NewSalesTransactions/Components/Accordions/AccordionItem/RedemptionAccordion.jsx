@@ -7,7 +7,8 @@ import CurrencyFormatter from "~/Components/Lib/CurrencyFormatter";
 
 export const RedemptionAccordion = ({
     redemptionData,
-    setRedemptionData
+    setRedemptionData,
+    paymentModeList
 }) => {
     const [inHouse, setInhouse] = useState({
         title: "Redemption",
@@ -32,6 +33,7 @@ export const RedemptionAccordion = ({
                 purpose={purpose}
                 editData={editData}
                 setEditData={setEditData}
+                paymentModeList={paymentModeList}
             />
 
             <div className="w-full flex justify-end py-4">
@@ -80,6 +82,7 @@ export const RedemptionAccordion = ({
                                         setPurpose={setPurpose}
                                         setOpenAdd={setOpenAdd}
                                         setEditData={setEditData}
+                                        paymentModeList={paymentModeList}
                                     />
                                 </tr>
                             )

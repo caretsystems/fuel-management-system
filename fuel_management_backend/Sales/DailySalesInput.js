@@ -39,23 +39,29 @@ router.post("/posUpload", upload.single("pos"), async (req, res) => {
 });
 
 router.get("/getDailySalesInput", async (req, res) => {
+
+    const { effectivityDate, selectedStation } = req.query;
+
     try {
-        const { effectivityDate, selectedStation } = req.query;
         
-        let query = `
+             
+
+            let query = `
             SELECT      "ID",
                         station_id,
                         shift_id,
                         employee_id,
-                        input_mode
+                        input_mode,
+                        TO_DATE(effectivity_date::text, 'YYYY-MM-DD') effectivity_date
             FROM        public.dailysalesinput_hdr AS a
-            WHERE       a."effectivity_date" =  $1
+            WHERE       a."effectivity_date"::date <=  ($1::date)
         `
         if (selectedStation != '') {
             query += `
-                AND     a."station_id" = $2
+                AND     a."station_id" = ANY ($2::int[])
             `
         }
+        
         let bindData = [effectivityDate]
         if (selectedStation != '') bindData.push(selectedStation)
 
@@ -64,7 +70,7 @@ router.get("/getDailySalesInput", async (req, res) => {
     }
     catch (err) {
         console.error(err);
-        res.status(500).json({ error: "Database query error" });
+        res.status(500).json({ error: "Database query error ", param1:effectivityDate, param2:selectedStation });
     }
 });
 

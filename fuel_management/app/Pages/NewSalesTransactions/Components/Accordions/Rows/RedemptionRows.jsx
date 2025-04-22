@@ -1,15 +1,14 @@
 import { Button } from "@heroui/react";
-import CurrencyFormatter from "~/Components/Lib/CurrencyFormatter";
-import { PaymentMode } from "~/Constants/Labels";
+import CurrencyFormatter from "~/Components/Lib/CurrencyFormatter"; 
 
-export const RedemptionRows = ({ currentData, content, setContent, setPurpose, setOpenAdd, setEditData }) => {
+export const RedemptionRows = ({ currentData, content, setContent, setPurpose, setOpenAdd, setEditData, paymentModeList }) => {
     return (
         <>
             <td className="px-6 py-1">
                 {currentData?.id + 1}
             </td>
             <td className="px-6 py-1">
-                {PaymentMode.filter((item)=>item.id==currentData?.payment)[0]?.description }
+                {paymentModeList.filter((item)=>item.id==currentData?.payment)[0]?.description }
             </td>
             <td className="px-6 py-1">
                 {currentData?.quantity}

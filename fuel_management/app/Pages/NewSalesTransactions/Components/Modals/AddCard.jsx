@@ -12,10 +12,9 @@ import { PlusIcon } from 'lucide-react'
 import { useState, useEffect } from "react";
 import { CashRows } from "../Accordions/Rows/CashRows";
 import CurrencyFormatter from "~/Components/Lib/CurrencyFormatter";
-import SimpleSelect from "~/Components/SimpleSelect";
-import { PaymentMode, SampleEmployeeName } from "~/Constants/Labels";
+import SimpleSelect from "~/Components/SimpleSelect"; 
 
-const AddCard = ({ openModal, setOpenModal, content, setContent, title, purpose, editData, setEditData }) => {
+const AddCard = ({ openModal, setOpenModal, content, setContent, title, purpose, editData, setEditData, paymentModeList }) => {
     const [payment, setPayment] = useState('')
     const [amount, setAmount] = useState(0)
     const [details, setDetails] = useState('')
@@ -107,7 +106,7 @@ const AddCard = ({ openModal, setOpenModal, content, setContent, title, purpose,
                     <div className="h-auto grid gap-4">
                         <SimpleSelect
                             label={"Mode of Payment"}
-                            items={PaymentMode}
+                            items={paymentModeList}
                             passedValue={payment}
                             toUpdate={setPayment}
                         />

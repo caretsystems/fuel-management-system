@@ -2,7 +2,8 @@ import { Button } from "@heroui/react";
 import CurrencyFormatter from "~/Components/Lib/CurrencyFormatter";
 import { PurchaseOrder, SampleEmployeeName } from "~/Constants/Labels";
 
-export const InHouseRows = ({ currentData, content, setContent, setPurpose, setOpenAdd, setEditData }) => {
+export const InHouseRows = ({ currentData, content, setContent, setPurpose, setOpenAdd, setEditData, productList, customerList }) => {
+
     return (
         <>
             <td className="px-6 py-1">
@@ -12,10 +13,10 @@ export const InHouseRows = ({ currentData, content, setContent, setPurpose, setO
                 {currentData?.invoiceNo}
             </td>
             <td className="px-6 py-1">
-                {SampleEmployeeName.filter((item)=>item.id==currentData?.customerName)[0]?.description}
+                {customerList.filter((item)=>item.id==currentData?.customerName)[0]?.name}
             </td>
             <td className="px-6 py-1">
-                {PurchaseOrder.filter((item)=>item.id==currentData?.product)[0]?.description}
+                {productList.filter((item)=>item.id==currentData?.product)[0]?.description}
             </td>
             <td className="px-6 py-1">
                 {currentData?.quantity}

@@ -47,7 +47,7 @@ const AddCash = ({ openModal, setOpenModal, content, setContent, title, purpose,
     useEffect(() => {
         const compute = () => {
             let sum = billsData?.reduce((total, data) => {
-                return total = total + Number(data.bill)
+                return total = total + (Number(data.bill)* Number(data.quantity))
             }, 0)
             setTotalAmount(sum)
         }
@@ -112,6 +112,7 @@ const AddCash = ({ openModal, setOpenModal, content, setContent, title, purpose,
         setOpenModal(!openModal)
     }
 
+ 
     return (
         <Modal
             isOpen={openModal}

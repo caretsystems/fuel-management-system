@@ -17,6 +17,9 @@ app.use("/Dashboard", dashboardRoutes);
 const salesRoutes = require("./Sales/DailySalesInput");
 app.use("/Sales", salesRoutes);
 
+const salesParams = require("./Sales/SalesParams");
+app.use("/SalesParams", salesParams);
+
 // Forecourt Sales
 const forecourtRoutes = require("./Sales/DailySalesInputForecourt");
 app.use("/ForecourtSales", forecourtRoutes);

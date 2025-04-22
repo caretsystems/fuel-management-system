@@ -13,9 +13,9 @@ import { useState, useEffect } from "react";
 import { CashRows } from "../Accordions/Rows/CashRows";
 import CurrencyFormatter from "~/Components/Lib/CurrencyFormatter";
 import SimpleSelect from "~/Components/SimpleSelect";
-import { PaymentMode, SampleEmployeeName } from "~/Constants/Labels";
+import { PaymentMode } from "~/Constants/Labels";
 
-const AddRedemption = ({ openModal, setOpenModal, content, setContent, title, purpose, editData, setEditData }) => {
+const AddRedemption = ({ openModal, setOpenModal, content, setContent, title, purpose, editData, setEditData, paymentModeList }) => {
     const [payment, setPayment] = useState('')
     const [quantity, setQuantity] = useState(0)
     const [amount, setAmount] = useState(0)
@@ -108,7 +108,7 @@ const AddRedemption = ({ openModal, setOpenModal, content, setContent, title, pu
                     <div className="h-auto grid gap-4">
                         <SimpleSelect
                             label={"Mode of Payment"}
-                            items={PaymentMode}
+                            items={paymentModeList}
                             passedValue={payment}
                             toUpdate={setPayment}
                         />

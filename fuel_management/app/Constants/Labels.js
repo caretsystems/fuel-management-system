@@ -69,8 +69,8 @@ const Bills = [
 ]
 
 const PaymentMode = [
-    { id: 1, description: "Cash" },
-    { id: 2, description: "Card" }
+    { id: 1, description: "Cash - Label" },
+    { id: 2, description: "Card - Label" }
 ]
 
 const PurchaseOrder = [

@@ -7,7 +7,8 @@ import { InventoryRows } from '../Rows/InventoryRows';
 
 export const InventoryAccordion = ({
     inventoryData,
-    setInventoryData
+    setInventoryData,
+    invCategoryList
 }) => {
     const [inHouse, setInhouse] = useState({
         title: "Sales By Category",
@@ -70,6 +71,7 @@ export const InventoryAccordion = ({
                                         data={item}
                                         inventoryData={inventoryData}
                                         setInventoryData={setInventoryData}
+                                        invCategoryList={invCategoryList}
                                     />
                                 </tr>
                             )

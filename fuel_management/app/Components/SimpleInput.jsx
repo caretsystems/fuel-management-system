@@ -1,6 +1,6 @@
 import {Input, TimeInput} from "@heroui/react";
 
-const SimpleInput = ({version, label, placeholder, icon, type, textAlign, initialValue, setInitialValue}) => {
+const SimpleInput = ({version, label, placeholder, icon, type, textAlign, initialValue, setInitialValue, isReadOnly}) => {
 
     return (
         <div>
@@ -42,6 +42,7 @@ const SimpleInput = ({version, label, placeholder, icon, type, textAlign, initia
                         required 
                         value={initialValue}
                         onChange={(e)=>setInitialValue(e.target.value)}
+                        readOnly={isReadOnly}
                     />
                 </>
             )}
