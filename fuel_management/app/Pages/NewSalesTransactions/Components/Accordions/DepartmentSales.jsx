@@ -102,6 +102,7 @@ const DepartmentSales = ({
                         lubricantSalesData={lubricantSalesData}
                         setLubricantSalesData={setLubricantSalesData}
                         fuelLubes={fuelLubes}
+                        employee={employee}
                     />
                 </AccordionItem>
             )}

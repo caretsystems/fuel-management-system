@@ -18,7 +18,6 @@ const upload = multer({ storage: storage });
 
 router.post("/dailySalesInputForecourt", upload.single("pos"), async (req, res) => {
     const client = await pool.connect();
-    try {
         const uploadedFile = req.file
         const uploadedData = {
             cashData: JSON.parse(req.body?.cashData),
@@ -36,8 +35,9 @@ router.post("/dailySalesInputForecourt", upload.single("pos"), async (req, res) 
             variance: req.body?.variance,
             comment: req.body?.comment
         }
+ 
 
-        // console.log(uploadedData?.cashData)
+        try {
 
         await client.query("BEGIN");
         //saving main sales input header
@@ -57,13 +57,14 @@ router.post("/dailySalesInputForecourt", upload.single("pos"), async (req, res) 
                 uploadedData.filterData?.selectedMode,
                 uploadedData.filterData?.selectedStation,
                 uploadedData.filterData?.selectedShift,
-                uploadedData.filterData?.selectedShiftManager,
+                uploadedData.filterData?.selectedShiftManager[0],
                 uploadedData.filterData?.effectivityDate,
                 uploadedData?.comment
             ]
         );
         let savedMainId = mainHeaderResult.rows[0].ID
 
+        
         // saving cash input header
         const cashHeaderResult = await client.query(
             `INSERT INTO dailysalesinput_cashhdr
@@ -492,6 +493,7 @@ router.post("/dailySalesInputForecourt", upload.single("pos"), async (req, res) 
                 uploadedData.variance
             ]
         );
+ 
 
         await client.query("COMMIT");
 
@@ -502,7 +504,12 @@ router.post("/dailySalesInputForecourt", upload.single("pos"), async (req, res) 
         console.log(err)
         await client.query("ROLLBACK");
 
-        res.status(500).json({ error: "Database query error" });
+        res.status(500).json({ error: "Database query error"
+            , params :
+            [
+                uploadedData
+            ]
+         });
     }
     finally {
         client.release();

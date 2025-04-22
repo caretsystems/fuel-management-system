@@ -54,7 +54,7 @@ router.get("/getDailySalesInput", async (req, res) => {
                         input_mode,
                         TO_DATE(effectivity_date::text, 'YYYY-MM-DD') effectivity_date
             FROM        public.dailysalesinput_hdr AS a
-            WHERE       a."effectivity_date"::date <=  ($1::date)
+            WHERE       a."effectivity_date"::date = ($1::date)
         `
         if (selectedStation != '') {
             query += `

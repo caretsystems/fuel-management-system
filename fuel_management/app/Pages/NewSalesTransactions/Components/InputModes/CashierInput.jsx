@@ -105,7 +105,7 @@ const CashierInput = ({
     },[poData])
 
 
-   console.log("CASHIER INPUT","PO INHOUSE ACCORION", "1", poData, productList, " count:", poData?.content?.length)
+//    console.log("CASHIER INPUT","PO INHOUSE ACCORION", "1", poData, productList, " count:", poData?.content?.length)
     return (
         <>
             <div>

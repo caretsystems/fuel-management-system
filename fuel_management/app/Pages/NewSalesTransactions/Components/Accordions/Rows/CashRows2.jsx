@@ -3,8 +3,10 @@ import CurrencyFormatter from "~/Components/Lib/CurrencyFormatter";
 import moment from "moment";
 import { SampleEmployeeName } from "~/Constants/Labels";
 
-export const CashRows2 = ({ currentData, content, setContent, setPurpose, setOpenAdd, setEditData }) => {
-
+export const CashRows2 = ({ currentData, content, setContent, setPurpose, setOpenAdd, setEditData, employee }) => {
+    const today = new Date();
+    // return today.toISOString().split("T")[0];
+ console.log("CashRows2",currentData,currentData)
     return (
         <>
             <td className="px-6 py-1">
@@ -14,10 +16,10 @@ export const CashRows2 = ({ currentData, content, setContent, setPurpose, setOpe
                 {CurrencyFormatter(currentData?.total)}
             </td>
             <td className="px-6 py-1">
-                {moment(currentData?.time).format('h:mm A')}
+                {moment( today.toISOString().split("T")[0] + " " +currentData?.time).format('h:mm A')}
             </td>
             <td className="px-6 py-1">
-                {SampleEmployeeName.filter((item)=>item.id==currentData?.recievedBy)[0]?.description}
+                {employee.filter((item)=>item.id==currentData?.recievedBy)[0]?.description}
             </td>
             <td className="px-6 py-1">
                 <Button

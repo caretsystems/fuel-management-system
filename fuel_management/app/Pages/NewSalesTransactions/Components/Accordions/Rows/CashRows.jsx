@@ -24,9 +24,7 @@ export const CashRows = ({ index, data, content, setContent }) => {
 
                 return item
             })
-            setContent(tempArray) 
-
-            console.log(tempArray)
+            setContent(tempArray)  
         }
         updateData()
     }, [bill, quantity])

@@ -11,7 +11,10 @@ import useAuth  from "~/Hooks/Auth/useAuth";
 
 const SalesTransactions = () => {
     const [activeTab, setActiveTab] = useState(SalesTabs[0]);
-    const [effectivityDate, setEffectivityDate] = useState(new Date(Date.now()));
+    const [effectivityDate, setEffectivityDate] =  useState(() => {
+        const today = new Date();
+        return today.toISOString().split("T")[0]; // Format as "YYYY-MM-DD"
+    });
     const [selectedMode, setSelectedMode] = useState(1)
     const [selectedStation, setSelectedStation] = useState('')
     const [selectedShiftManager, setSelectedShiftManager] = useState('')
@@ -22,6 +25,7 @@ const SalesTransactions = () => {
     const [employee, setEmployees] = useState([]);
     const [shiftStationManagers, setShiftStationManagers] = useState([]);
     const { user } = useAuth(); 
+    const [empStationList, setEmpStationList] = useState([]);
 
 
 
@@ -48,15 +52,19 @@ const SalesTransactions = () => {
                 setShifts(tempArray)
                 
                 if (selectedShift !== '' && selectedShift !== undefined) {
-                    const res = await fetchStationShiftManagers(selectedStation, selectedShift) 
-                    setShiftStationManagers(res)
+                    const res1 = await fetchStationShiftManagers(selectedStation, selectedShift) 
+                    setShiftStationManagers(res1)
+                    
+                    const res2 = await fetchStationEmployees(selectedStation, selectedShift) 
+                    // console.log("fetchStationEmployees",res2)
+                    setEmpStationList(res2)                    
                 }
             }
         }        
         getData()
     }, [selectedStation, selectedShift])
 
-    
+
 
     return (
         <>
@@ -101,7 +109,7 @@ const SalesTransactions = () => {
                                 selectedStation={selectedStation}
                                 selectedShiftManager={selectedShiftManager}
                                 selectedShift={selectedShift}
-                                employee={employee}
+                                employee={empStationList}
                                 shiftStationManagers={shiftStationManagers}
                             />
                             : 

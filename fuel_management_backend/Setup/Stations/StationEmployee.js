@@ -11,7 +11,7 @@ router.get("/Station/:stationId/:shiftId/Employees", async (req, res) => {
         await client.query("BEGIN");
 
         const result = await client.query(`
-            SELECT 		c.id, CONCAT(c.firstname, c.lastname) AS description
+            SELECT 		c.id, CONCAT(c.firstname, ' ', c.lastname) AS description
             FROM 		public.stationshift AS a
             LEFT JOIN	public.stationshiftcrew AS b
             ON			a.shiftid = b.stationshiftid

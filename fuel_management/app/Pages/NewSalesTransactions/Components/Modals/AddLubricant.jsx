@@ -15,7 +15,7 @@ import CurrencyFormatter from "~/Components/Lib/CurrencyFormatter";
 import SimpleSelect from "~/Components/SimpleSelect";
 import { SampleEmployeeName } from "~/Constants/Labels";
 
-const AddLubricant = ({ openModal, setOpenModal, content, setContent, title, purpose, editData, setEditData, fuelLubes }) => {
+const AddLubricant = ({ openModal, setOpenModal, content, setContent, title, purpose, editData, setEditData, fuelLubes, employee }) => {
     const [lubricant, setLubricant] = useState('')
     const [quantity, setQuantity] = useState(0)
     const [amount, setAmount] = useState(0)
@@ -157,7 +157,7 @@ const AddLubricant = ({ openModal, setOpenModal, content, setContent, title, pur
                         /> */}
                         <SimpleSelect
                             label={"Sold By"}
-                            items={SampleEmployeeName}
+                            items={employee}
                             passedValue={soldBy}
                             toUpdate={setSoldBy}
                         />

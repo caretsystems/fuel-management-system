@@ -45,8 +45,7 @@ export const DailySalesTable = ({
         const getData = async () => {
             const formattedDate = new Date(effectivityDate).toISOString().split("T")[0];
             const res = await useGetDailySalesInput(formattedDate, selectedStation)
-
-            console.log("useGetDailySalesInput", res)
+            
 
             if (res?.success === true) {
                 const cleanData = res.message.map((item)=> {
@@ -70,8 +69,8 @@ export const DailySalesTable = ({
     }
 
     const handleEdit = (id) => {
-        // setEditId(id)
-        // setOpenAdd(true)
+        setEditId(id)
+        setOpenAdd(true)
     }
 
     const customRender = {

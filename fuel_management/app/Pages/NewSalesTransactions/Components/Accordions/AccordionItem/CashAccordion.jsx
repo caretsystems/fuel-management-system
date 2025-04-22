@@ -111,6 +111,8 @@ export const CashAccordion = ({
                                         setPurpose={setPurpose}
                                         setOpenAdd={setOpenAdd}
                                         setEditData={setEditData}
+                                        employee={employee}
+
                                     />
                                 </tr>
                             )

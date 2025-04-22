@@ -301,7 +301,7 @@ const DailySalesInput = ({
     }, [salesGrandTotal, netDepartmentTotal])
 
     const submitHandler = async () => {
-        try {
+        // try {
             if (selectedStation == '') alert("Please select a station!")
             else if (selectedShiftManager == '') alert("Please select an employee!")
             else if (selectedShift == '') alert("Please select a shift!")
@@ -344,22 +344,22 @@ const DailySalesInput = ({
                 }
                 if (selectedMode == 1) {
                     const res = await useUploadDailySalesInputForecourt(data)
-                    alert(res.message)
+                    alert("useUploadDailySalesInputForecourt " + res.message)
                     setOpenAdd(false)
                 } else if (selectedMode == 2) {
                     const res = await useUploadDailySalesInputSelect(data)
-                    alert(res.message)
+                    alert("useUploadDailySalesInputSelect " + res.message)
                     setOpenAdd(false)
                 } else if (selectedMode == 3) {
                     const res = await useUploadDailySalesInputManager(data)
-                    alert(res.message)
+                    alert("useUploadDailySalesInputManager " + res.message)
                     setOpenAdd(false)
                 }
             }
-        } catch (err) {
-            console.log(err)
-            alert(err)
-        }
+        // } catch (err) {
+        //     console.log(err)
+        //     alert("CATCH ERROR "+err)
+        // }
     }
 
     return (
@@ -368,7 +368,7 @@ const DailySalesInput = ({
                 {selectedMode != 3 ?
                     <CashierInput
                         selectedMode={selectedMode}
-                        employee={shiftStationManagers}
+                        employee={employee}
                         cashData={cashData}
                         setCashData={setCashData}
                         poData={poData}
