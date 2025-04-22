@@ -301,7 +301,7 @@ const DailySalesInput = ({
     }, [salesGrandTotal, netDepartmentTotal])
 
     const submitHandler = async () => {
-        // try {
+        try {
             if (selectedStation == '') alert("Please select a station!")
             else if (selectedShiftManager == '') alert("Please select an employee!")
             else if (selectedShift == '') alert("Please select a shift!")
@@ -356,10 +356,10 @@ const DailySalesInput = ({
                     setOpenAdd(false)
                 }
             }
-        // } catch (err) {
-        //     console.log(err)
-        //     alert("CATCH ERROR "+err)
-        // }
+        } catch (err) {
+            console.log(err)
+            alert("CATCH ERROR "+err)
+        }
     }
 
     return (
