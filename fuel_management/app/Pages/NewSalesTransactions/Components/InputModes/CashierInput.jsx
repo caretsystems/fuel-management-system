@@ -91,8 +91,8 @@ const CashierInput = ({
             const formattedLubes = productList
             .filter(
                 (product) =>
-                    product.category.includes("lube") && // Check if category is "lube"
-                    poData.content.some((po) => po.product === product.id) // Check if product id exists in poData
+                    product.category.includes("lube") //&& // Check if category is "lube"
+                    //poData.content.some((po) => po.product === product.id) // Check if product id exists in poData
             )
             .map((product) => ({
                  id: product.id,

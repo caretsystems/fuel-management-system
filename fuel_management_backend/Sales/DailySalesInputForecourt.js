@@ -507,7 +507,12 @@ router.post("/dailySalesInputForecourt", upload.single("pos"), async (req, res) 
         res.status(500).json({ error: "Database query error"
             , params :
             [
-                uploadedData
+                uploadedData.filterData?.selectedMode,
+                uploadedData.filterData?.selectedStation,
+                uploadedData.filterData?.selectedShift,
+                uploadedData.filterData?.selectedShiftManager[0],
+                uploadedData.filterData?.effectivityDate,
+                uploadedData?.comment
             ]
          });
     }

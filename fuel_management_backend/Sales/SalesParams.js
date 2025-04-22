@@ -7,10 +7,10 @@ router.get("/ProductList", async (req, res) => {
          
         let query = `
            select transid, id, code,  name, category from (
-	            select concat('fuel','-',id) transid, id, name as code, name, 'fuel' category from fuelmaster f 
+	            select concat(id) transid, id, name as code, name, 'fuel' category from fuelmaster f 
 	            where status = true
 	            UNION ALL
-	            select  concat('lube','-',id) transid, id, name as code, name, 'lube' category from fuellubricant l
+	            select  concat(id) transid, id, name as code, name, 'lube' category from fuellubricant l
 	            where status = true
             ) as product
         ` 

@@ -16,22 +16,22 @@ export const DailySalesTable = ({
     setEditId
 }) => {
     const [dailySales, setDailySales] = useState([
-        {
-            ID: 0,
-            effectivity_date : '',
-            input_mode: "Zero",
-            shift_id:"",
-            employee_id: "",
-            station_id: ""
-        },
-        {
-            ID: 1,
-            effectivity_date : '',
-            input_mode: "One",
-            shift_id:"",
-            employee_id: "",
-            station_id: ""
-        },
+        // {
+        //     ID: 0,
+        //     effectivity_date : '',
+        //     input_mode: "Zero",
+        //     shift_id:"",
+        //     employee_id: "",
+        //     station_id: ""
+        // },
+        // {
+        //     ID: 1,
+        //     effectivity_date : '',
+        //     input_mode: "One",
+        //     shift_id:"",
+        //     employee_id: "",
+        //     station_id: ""
+        // },
     ])
     const columns = [
         { key: "effectivity_date", label: "Effectivity Date", hidden: true },
