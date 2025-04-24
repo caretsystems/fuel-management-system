@@ -14,6 +14,7 @@ import { CashRows } from "../Accordions/Rows/CashRows";
 import CurrencyFormatter from "~/Components/Lib/CurrencyFormatter";
 import SimpleSelect from "~/Components/SimpleSelect";
 import { PurchaseOrder, SampleEmployeeName } from "~/Constants/Labels"; 
+import { fetchCustomerPlateNo, fetchPriceBasedonProduct } from "~/Hooks/Sales/useGetParams"
 
 const AddPo = ({ openModal, setOpenModal, content, setContent, title, purpose, editData, setEditData, productList, customerList }) => {
     const [invoiceNo, setInvoiceNo] = useState('')
@@ -23,7 +24,42 @@ const AddPo = ({ openModal, setOpenModal, content, setContent, title, purpose, e
     const [product, setProduct] = useState('')
     const [quantity, setQuantity] = useState(null)
     const [poAmount, setPoAmount] = useState(null)
+    const [discountedPOAmount, setdiscountedPOAmount] = useState(null)
     const [customers, setCustomers] = useState([])
+    const [plateNo, setPlateNo] = useState('')
+
+    const [plateNoList,setPlateNoList] = useState([]);
+
+    useEffect(()=>{
+        if(customerName){
+            const getCustomerPlateNo = async() =>{
+                const result = await fetchCustomerPlateNo(customerName??0);
+                const formattedList = result?.message?.map((a) => ({
+                    id: a.id,
+                    description: a.plateno
+                }));
+                setPlateNoList(formattedList);
+            } 
+            getCustomerPlateNo();
+        }
+    },[customerName])
+
+
+    useEffect(()=>{
+        if(product && purpose !== "edit")
+        {
+            const category = productList.find((a)=>a.id===product)?.category
+            const getPriceBasedonProduct = async() =>{
+                const result = await fetchPriceBasedonProduct(product,category); 
+                setPoAmount(
+                    result?.message.find((a)=>a.transid===product)?.price
+                 ); 
+            } 
+            getPriceBasedonProduct();
+
+            
+        }
+    },[product])
 
 
 
@@ -44,7 +80,9 @@ const AddPo = ({ openModal, setOpenModal, content, setContent, title, purpose, e
                 setProduct(editData?.product)
                 setQuantity(editData?.quantity)
                 setPoAmount(editData?.poAmount)
+                setdiscountedPOAmount(editData?.discountedPOAmount)
                 setCustPONumber(editData?.custPONumber)
+                setPlateNo(editData?.plateNo) 
             } else {
                 setInvoiceNo('')
                 setCustomerName('')
@@ -52,7 +90,9 @@ const AddPo = ({ openModal, setOpenModal, content, setContent, title, purpose, e
                 setProduct('')
                 setQuantity(null)
                 setPoAmount(null)
+                setdiscountedPOAmount(null)
                 setCustPONumber('')
+                setPlateNo('')
             }
         }
         compute()
@@ -80,7 +120,9 @@ const AddPo = ({ openModal, setOpenModal, content, setContent, title, purpose, e
                     product: product,
                     quantity: Number(quantity),
                     poAmount: Number(poAmount),
-                    custPONumber: custPONumber
+                    discountedPOAmount: Number(discountedPOAmount),
+                    custPONumber: custPONumber,
+                    plateNo: plateNo
                 }
             ])
             setContent({
@@ -93,8 +135,10 @@ const AddPo = ({ openModal, setOpenModal, content, setContent, title, purpose, e
             setProduct('')
             setQuantity(null)
             setPoAmount(null)
+            setdiscountedPOAmount(null)
             setOpenModal(!openModal)
             setCustPONumber('')
+            setPlateNo('')
         } 
         else if (purpose === 'edit') {
             let tempArray = content?.content.map((item) => {
@@ -107,7 +151,9 @@ const AddPo = ({ openModal, setOpenModal, content, setContent, title, purpose, e
                         product: product,
                         quantity: Number(quantity),
                         poAmount: Number(poAmount),
-                        custPONumber: custPONumber
+                        discountedPOAmount: Number(discountedPOAmount),
+                        custPONumber: custPONumber,
+                        plateNo: plateNo
                     }
                 }
                 return item
@@ -122,8 +168,10 @@ const AddPo = ({ openModal, setOpenModal, content, setContent, title, purpose, e
             setProduct('')
             setQuantity(null)
             setPoAmount(null)
+            setdiscountedPOAmount(null)
             setOpenModal(!openModal)
             setCustPONumber('')
+            setPlateNo('')
         }
     }
 
@@ -139,8 +187,10 @@ const AddPo = ({ openModal, setOpenModal, content, setContent, title, purpose, e
         setProduct('')
         setQuantity(null)
         setPoAmount(null)
+        setdiscountedPOAmount(null)
         setOpenModal(!openModal)
         setCustPONumber('')
+        setPlateNo('')
     }
 
     return (
@@ -155,9 +205,11 @@ const AddPo = ({ openModal, setOpenModal, content, setContent, title, purpose, e
                 setProduct('')
                 setQuantity(null)
                 setPoAmount(null)
+                setdiscountedPOAmount(null)
                 setOpenModal(!openModal)
                 setEditData(undefined)
                 setCustPONumber('')
+                setPlateNo('')
             }}
             radius="none">
             <ModalContent>
@@ -175,7 +227,22 @@ const AddPo = ({ openModal, setOpenModal, content, setContent, title, purpose, e
                             items={customers}
                             passedValue={customerName}
                             toUpdate={setCustomerName}
+                            allowSearch={purpose === "edit"?false:true}  
                         />
+                        <SimpleInput
+                            version={3}
+                            label={"Plate No."}
+                            initialValue={plateNo}
+                            setInitialValue={setPlateNo}
+                        />
+                        {/* <SimpleSelect
+                            label={"Plate No."}
+                            items={plateNoList}
+                            passedValue={plateNo}
+                            toUpdate={setPlateNo}
+                            allowSearch={purpose === "edit"?false:true}   
+                            selectedKey = {purpose === "edit"? plateNoList.find((a) => a.id === plateNo)?.description : ''  }
+                        /> */}
                         <SimpleInput
                             version={3}
                             label={"Tax Code"}
@@ -194,7 +261,7 @@ const AddPo = ({ openModal, setOpenModal, content, setContent, title, purpose, e
                             items={productList}
                             passedValue={product}
                             toUpdate={setProduct}
-                            allowSearch={true}
+                            allowSearch={purpose === "edit"?false:true}  
                         />
                         <SimpleInput
                             version={3}
@@ -205,10 +272,17 @@ const AddPo = ({ openModal, setOpenModal, content, setContent, title, purpose, e
                         />
                         <SimpleInput
                             version={3}
-                            label={"PO Amount"}
+                            label={"Original Amount"}
                             type={"number"}
                             initialValue={poAmount}
                             setInitialValue={setPoAmount}
+                        />
+                        <SimpleInput
+                            version={3}
+                            label={"Discounted Amount"}
+                            type={"number"}
+                            initialValue={discountedPOAmount}
+                            setInitialValue={setdiscountedPOAmount}
                         />
                     </div>
                 </ModalBody>
@@ -225,6 +299,7 @@ const AddPo = ({ openModal, setOpenModal, content, setContent, title, purpose, e
                                 setProduct('')
                                 setQuantity(null)
                                 setPoAmount(null)
+                                setdiscountedPOAmount(null)
                                 setOpenModal(!openModal)
                                 setEditData(undefined)
                                 setCustPONumber('')

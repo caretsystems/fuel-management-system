@@ -15,17 +15,20 @@ const DepartmentSales = ({
     setFuelData,
     discountData,
     setDiscountData,
-    recievableData,
-    setRecievableData,
+    receivableData,
+    setReceivableData,
     checkData,
     setCheckData,
     inventoryData,
     setInventoryData,
     employee,
     invCategoryList,
-    fuelLubes
-
+    fuelLubes,
+    discountList,
+    empChargeDescriptionList,
+    disableAccordion
 }) => {
+ 
     return (
         <Accordion
             isCompact
@@ -80,6 +83,7 @@ const DepartmentSales = ({
                     key={"Inventory Sales"}
                     aria-label={"Inventory Sales"}
                     title={"Category Sales"}
+                    isDisabled={disableAccordion}
                 >
                     <InventoryAccordion 
                         inventoryData={inventoryData}
@@ -97,12 +101,13 @@ const DepartmentSales = ({
                     startContent={
                         <label className="font-semibold">{CurrencyFormatter(lubricantSalesData?.total)}</label>
                     }
+                    isDisabled={disableAccordion}
                 >
                     <LubricantSalesAccordion
                         lubricantSalesData={lubricantSalesData}
                         setLubricantSalesData={setLubricantSalesData}
                         fuelLubes={fuelLubes}
-                        employee={employee}
+                        employeeList={employee}
                     />
                 </AccordionItem>
             )}
@@ -115,6 +120,7 @@ const DepartmentSales = ({
                     startContent={
                         <label className="font-semibold">{CurrencyFormatter(fuelData?.total)}</label>
                     }
+                    isDisabled={disableAccordion}
                 >
                     <FuelSalesAccordion
                         fuelData={fuelData}
@@ -128,24 +134,28 @@ const DepartmentSales = ({
                 key={"Discounts Charged to Shell"}
                 aria-label={"Discounts Charged to Shell"}
                 title={"Discounts"}
+                isDisabled={disableAccordion}
             >
                 <DiscountAccordion
                     discountData={discountData}
                     setDiscountData={setDiscountData}
+                    discountList={discountList}
                 />
             </AccordionItem>
 
             {selectedMode == 1 && (
                 <AccordionItem
                     className="w-full bg-gray-100 shadow-none overflow-hidden"
-                    key={"Recievable"}
-                    aria-label={"Recievable"}
-                    title={"Employee Recievable"}
+                    key={"Receivable"}
+                    aria-label={"Receivable"}
+                    title={"Employee Receivable"}
+                    isDisabled={disableAccordion}
                 >
                     <RecievableAccordion
-                        recievableData={recievableData}
-                        setRecievableData={setRecievableData}
-                        employee={employee}
+                        receivableData={receivableData}
+                        setReceivableData={setReceivableData}
+                        employeeList={employee}
+                        empChargeDescriptionList={empChargeDescriptionList}
                     />
                 </AccordionItem>
             )}
@@ -155,6 +165,7 @@ const DepartmentSales = ({
                     key={"Check Payments"}
                     aria-label={"Check Payments"}
                     title={"Check Payments"}
+                    isDisabled={disableAccordion}
                 >
                     <CheckAccordion
                         checkData={checkData}

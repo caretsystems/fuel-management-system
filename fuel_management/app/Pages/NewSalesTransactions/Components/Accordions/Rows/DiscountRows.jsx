@@ -1,15 +1,14 @@
 import { Button } from "@heroui/react";
-import CurrencyFormatter from "~/Components/Lib/CurrencyFormatter";
-import { Discounts } from "~/Constants/Labels";
+import CurrencyFormatter from "~/Components/Lib/CurrencyFormatter"; 
 
-export const DiscountRows = ({ currentData, content, setContent, setPurpose, setOpenAdd, setEditData }) => {
+export const DiscountRows = ({ currentData, content, setContent, setPurpose, setOpenAdd, setEditData, discountList }) => {
     return (
         <>
             <td className="px-6 py-1">
                 {currentData?.id + 1}
             </td>
             <td className="px-6 py-1">
-                {Discounts.filter((item)=>item.id==currentData?.discount)[0]?.description}
+                {discountList.filter((item)=>item.id==currentData?.discount)[0]?.description}
             </td>
             <td className="px-6 py-1">
                 {currentData?.quantity}

@@ -11,7 +11,8 @@ import CurrencyFormatter from '~/Components/Lib/CurrencyFormatter';
 export const CashAccordion = ({
     employee,
     cashData,
-    setCashData
+    setCashData,
+    transactionUniqueID
 }) => {
     const [inHouse, setInhouse] = useState({
         title: "Cash",
@@ -62,6 +63,7 @@ export const CashAccordion = ({
                 editData={editData}
                 setEditData={setEditData}
                 employee={employee}
+                transactionUniqueID={transactionUniqueID}
             />
 
             <div className="w-full flex justify-between items-baseline py-4">

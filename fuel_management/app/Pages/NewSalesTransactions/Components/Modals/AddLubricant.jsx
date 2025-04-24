@@ -14,13 +14,28 @@ import { CashRows } from "../Accordions/Rows/CashRows";
 import CurrencyFormatter from "~/Components/Lib/CurrencyFormatter";
 import SimpleSelect from "~/Components/SimpleSelect";
 import { SampleEmployeeName } from "~/Constants/Labels";
+import { fetchCustomerPlateNo, fetchPriceBasedonProduct } from "~/Hooks/Sales/useGetParams"
 
-const AddLubricant = ({ openModal, setOpenModal, content, setContent, title, purpose, editData, setEditData, fuelLubes, employee }) => {
+const AddLubricant = ({ openModal, setOpenModal, content, setContent, title, purpose, editData, setEditData, fuelLubes, employeeList }) => {
     const [lubricant, setLubricant] = useState('')
     const [quantity, setQuantity] = useState(0)
     const [amount, setAmount] = useState(0)
     const [discount, setDiscount] = useState(0)
     const [soldBy, setSoldBy] = useState('')
+
+
+    useEffect(()=>{
+        if(lubricant){             
+            const getPriceBasedonProduct = async() =>{
+                const result = await fetchPriceBasedonProduct(lubricant,"lube"); 
+                setAmount(
+                    result?.message.find((a)=>a.transid===lubricant)?.price
+                    ); 
+            } 
+            getPriceBasedonProduct();
+        }
+    },[lubricant])
+
 
     useEffect(() => {
         const compute = () => {
@@ -157,7 +172,7 @@ const AddLubricant = ({ openModal, setOpenModal, content, setContent, title, pur
                         /> */}
                         <SimpleSelect
                             label={"Sold By"}
-                            items={employee}
+                            items={employeeList}
                             passedValue={soldBy}
                             toUpdate={setSoldBy}
                         />

@@ -6,12 +6,13 @@ import CurrencyFormatter from "~/Components/Lib/CurrencyFormatter";
 import AddReceivable from '../../Modals/AddReceivable';
 
 export const RecievableAccordion = ({
-    recievableData,
-    setRecievableData,
-    employee
+    receivableData,
+    setReceivableData,
+    employeeList,
+    empChargeDescriptionList
 }) => {
     const [inHouse, setInhouse] = useState({
-        title: "Employees Recievable and Cash Deposit",
+        title: "Employees Receivable and Cash Deposit",
         tableHeaders: [
             "Employee Name",
             "Charge Amount",
@@ -21,19 +22,21 @@ export const RecievableAccordion = ({
     const [openAdd, setOpenAdd] = useState(false);
     const [purpose, setPurpose] = useState('add');
     const [editData, setEditData] = useState(undefined);
+ 
 
     return (
         <div className="bg-white rounded-lg p-4">
             <AddReceivable
                 openModal={openAdd}
                 setOpenModal={setOpenAdd}
-                content={recievableData}
-                setContent={setRecievableData}
+                content={receivableData}
+                setContent={setReceivableData}
                 title={purpose === "add" ? "Add new" : "Edit"}
                 purpose={purpose}
                 editData={editData}
                 setEditData={setEditData}
-                employeeList={employee}
+                employeeList={employeeList}
+                empChargeDescriptionList={empChargeDescriptionList}
             />
             <div className="w-full flex justify-end py-4">
                 <Button
@@ -71,16 +74,18 @@ export const RecievableAccordion = ({
                         </tr>
                     </thead>
                     <tbody>
-                        {recievableData?.content?.map((item, index) => {
+                        {receivableData?.content?.map((item, index) => {
                             return (
                                 <tr key={index} className="border-b-1">
                                     <RecievableRows
                                         currentData={item}
-                                        content={recievableData?.content}
-                                        setContent={setRecievableData}
+                                        content={receivableData?.content}
+                                        setContent={setReceivableData}
                                         setPurpose={setPurpose}
                                         setOpenAdd={setOpenAdd}
                                         setEditData={setEditData}
+                                        employeeList={employeeList}
+                                        empChargeDescriptionList={empChargeDescriptionList}
                                     />
                                 </tr>
                             )
@@ -88,7 +93,7 @@ export const RecievableAccordion = ({
                         <tr className="border-b-1">
                             <th className="px-6 py-2 text-base text-gray-900">Total</th>
                             <td></td>
-                            <td className="px-6 py-2 text-base text-gray-900 font-semibold">{CurrencyFormatter(recievableData?.total)}</td>
+                            <td className="px-6 py-2 text-base text-gray-900 font-semibold">{CurrencyFormatter(receivableData?.total)}</td>
                         </tr>
                     </tbody>
                 </table>

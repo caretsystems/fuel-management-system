@@ -7,7 +7,8 @@ import CurrencyFormatter from "~/Components/Lib/CurrencyFormatter";
 
 export const DiscountAccordion = ({
     discountData,
-    setDiscountData
+    setDiscountData,
+    discountList
 }) => {
     const [inHouse, setInhouse] = useState({
         title: "Discounts Charged to Shell",
@@ -32,6 +33,7 @@ export const DiscountAccordion = ({
                 purpose={purpose}
                 editData={editData}
                 setEditData={setEditData}
+                discountList = {discountList}
             />
             <div className="w-full flex justify-end py-4">
                 <Button
@@ -79,6 +81,7 @@ export const DiscountAccordion = ({
                                         setPurpose={setPurpose}
                                         setOpenAdd={setOpenAdd}
                                         setEditData={setEditData}
+                                        discountList={discountList}
                                     />
                                 </tr>
                             )

@@ -49,6 +49,7 @@ export const CashRows = ({ index, data, content, setContent }) => {
                     required
                     value={quantity}
                     onChange={(e) => setQuantity(e.target.value)}
+                    onFocus={(e) => e.target.select()}
                 />
             </td>
             <td className="px-1 min-w-36">

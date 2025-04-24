@@ -5,8 +5,10 @@ import Navbar from "~/Components/Navbar"
 import SalesFilter from "./Components/SalesFilter";
 import { DailySalesTable } from "./Pages/DailySalesTable";
 import DailySalesInput from "./Pages/DailySalesInput";
-import { fetchStationShifts, fetchStationShifts2, fetchStationShifts3 } from "~/Hooks/Setup/Station/StationShift/useStationShifts";
-import { fetchStationEmployees, fetchStationShiftManagers } from "~/Hooks/Setup/Station/StationEmployee/useStationEmployee";
+import { fetchShiftList, fetchStationShifts, fetchStationShifts2, fetchStationShifts3 } from "~/Hooks/Setup/Station/StationShift/useStationShifts";
+import { fetchStationEmployees, fetchStationShiftManagers, fetchStationEmployeesList, fetchStationUserList } from "~/Hooks/Setup/Station/StationEmployee/useStationEmployee";
+import { fetchStations,fetchUserStations } from "~/Hooks/Setup/Station/Station/useStations";
+
 import useAuth  from "~/Hooks/Auth/useAuth"; 
 
 const SalesTransactions = () => {
@@ -26,6 +28,9 @@ const SalesTransactions = () => {
     const [shiftStationManagers, setShiftStationManagers] = useState([]);
     const { user } = useAuth(); 
     const [empStationList, setEmpStationList] = useState([]);
+    
+    const [stationList, setStationList] = useState([]);  
+    const [shiftList, setShiftList] = useState([]);
 
 
 
@@ -35,8 +40,39 @@ const SalesTransactions = () => {
             description: user?.firstname + " " + user?.lastname 
         }])
         setSelectedShiftManager([user?.id])
-    },[]);
+        
+        const getStationList = async () => {
+            const result = await fetchUserStations(user?.id)
+            let tempArray = [] 
+            for (let item of result.body) {
+                tempArray.push({
+                    id: item.id,
+                    name: item.name,
+                    description: item.code
+                }) 
+            } 
+            setStationList(tempArray) 
+        } 
+        getStationList();
 
+        
+        const getShiftList = async () => {
+            const result = await fetchShiftList()
+            let tempArray = [] 
+            for (let item of result) {
+                tempArray.push({
+                    id: item.id,
+                    description: item.name
+                }) 
+            } 
+            setShiftList(tempArray)
+        } 
+        getShiftList();
+
+        
+
+    },[]);
+ 
     useEffect(() => {
         const getData = async () => {
             if (selectedStation !== '' && selectedStation !== undefined) {
@@ -50,14 +86,28 @@ const SalesTransactions = () => {
                     })
                 }
                 setShifts(tempArray)
+
+                const result2 =await fetchStationUserList(selectedStation)
+                
+                let tempArray2 = []
+                for (let item of result2) {
+                    tempArray2.push({
+                        id: item.id,
+                        description: item.description
+                    })
+                }
+                setEmployees(tempArray2) 
+
                 
                 if (selectedShift !== '' && selectedShift !== undefined) {
                     const res1 = await fetchStationShiftManagers(selectedStation, selectedShift) 
                     setShiftStationManagers(res1)
                     
                     const res2 = await fetchStationEmployees(selectedStation, selectedShift) 
-                    // console.log("fetchStationEmployees",res2)
-                    setEmpStationList(res2)                    
+                    setEmpStationList(res2)            
+                }else{
+                    const res2 = await fetchStationEmployeesList(selectedStation) 
+                    setEmpStationList(res2)
                 }
             }
         }        
@@ -96,6 +146,8 @@ const SalesTransactions = () => {
                     setShifts={setShifts}
                     employee={employee}
                     setEmployees={setEmployees}
+                    stationList={stationList}
+                    setStationList={setStationList}
                 />
 
                 {activeTab === "Daily Sales Input" && (
@@ -116,12 +168,16 @@ const SalesTransactions = () => {
                             <DailySalesTable
                                 openAdd={openAdd}
                                 setOpenAdd={setOpenAdd}
+                                setSelectedStation={setSelectedStation}
                                 effectivityDate={effectivityDate}
                                 selectedMode={selectedMode}
                                 selectedStation={selectedStation}
                                 selectedShiftManager={selectedShiftManager}
                                 selectedShift={selectedShift}
                                 setEditId={setEditId}
+                                employee={employee}                          
+                                shiftList={shiftList}
+                                stationList={stationList}
                             />
                         }
                     </>

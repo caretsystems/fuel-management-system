@@ -17,17 +17,23 @@ import { SampleEmployeeName } from "~/Constants/Labels";
 
 const AddCheck = ({ openModal, setOpenModal, content, setContent, title, purpose, editData, setEditData }) => {
     const [paymentForm, setPaymentForm] = useState('')
+    const [bankNo, setBankNo] = useState('')
     const [amount, setAmount] = useState(0)
     const [details, setDetails] = useState('')
+    const [checkNo, setCheckNo] = useState('')
 
     useEffect(() => {
         const compute = () => {
-            if (purpose === "edit" && editData !== undefined) {
+            if (purpose === "edit" && editData !== undefined) { 
                 setPaymentForm(editData?.paymentForm)
+                setCheckNo(editData?.checkno)
+                setBankNo(editData?.bankno)
                 setAmount(editData?.amount)
                 setDetails(editData?.details)
             } else {
                 setPaymentForm('')
+                setBankNo('')
+                setCheckNo('')
                 setAmount(0)
                 setDetails('')
             }
@@ -37,10 +43,13 @@ const AddCheck = ({ openModal, setOpenModal, content, setContent, title, purpose
 
     const submitHandler = async () => {
         if (purpose === 'add') {
+             
             let tempArray = content?.content.concat([
                 {
                     id: content?.content?.length,
                     paymentForm: paymentForm,
+                    bankno: bankNo,
+                    checkno: checkNo,
                     amount: Number(amount),
                     details: details
                 }
@@ -50,16 +59,20 @@ const AddCheck = ({ openModal, setOpenModal, content, setContent, title, purpose
                 content: tempArray
             })
             setPaymentForm('')
+            setBankNo('')
+            setCheckNo('')
             setAmount(0)
             setDetails('')
             setOpenModal(!openModal)
         }
         else if (purpose === 'edit') {
             let tempArray = content?.content.map((item) => {
-                if (item?.id === editData?.id) {
+                if (item?.id === editData?.id) { 
                     return {
                         ...item,
                         paymentForm: paymentForm,
+                        bankno: bankNo,
+                        checkno: checkNo,
                         amount: Number(amount),
                         details: details
                     }
@@ -71,6 +84,8 @@ const AddCheck = ({ openModal, setOpenModal, content, setContent, title, purpose
                 content: tempArray
             })
             setPaymentForm('')
+            setBankNo('')
+            setCheckNo('')
             setAmount(0)
             setDetails('')
             setOpenModal(!openModal)
@@ -84,6 +99,8 @@ const AddCheck = ({ openModal, setOpenModal, content, setContent, title, purpose
             content: tempArray
         })
         setPaymentForm('')
+        setBankNo('')
+        setCheckNo('')
         setAmount(0)
         setDetails('')
         setOpenModal(!openModal)
@@ -96,6 +113,8 @@ const AddCheck = ({ openModal, setOpenModal, content, setContent, title, purpose
             scrollBehavior={"inside"}
             onClose={() => {
                 setPaymentForm('')
+                setBankNo('')
+                setCheckNo('')
                 setAmount(0)
                 setDetails('')
                 setOpenModal(!openModal)
@@ -112,6 +131,20 @@ const AddCheck = ({ openModal, setOpenModal, content, setContent, title, purpose
                             type={"text"}
                             initialValue={paymentForm}
                             setInitialValue={setPaymentForm}
+                        />
+                        <SimpleInput
+                            version={3}
+                            label={"Bank No."}
+                            type={"text"}
+                            initialValue={bankNo}
+                            setInitialValue={setBankNo}
+                        />
+                        <SimpleInput
+                            version={3}
+                            label={"Check No."}
+                            type={"text"}
+                            initialValue={checkNo}
+                            setInitialValue={setCheckNo}
                         />
                         <SimpleInput
                             version={3}
@@ -138,6 +171,8 @@ const AddCheck = ({ openModal, setOpenModal, content, setContent, title, purpose
                         <Button color="primary" variant="light" className="font-semibold text-base rounded-md"
                             onPress={() => {
                                 setPaymentForm('')
+                                setBankNo('')
+                                setCheckNo('')
                                 setAmount(0)
                                 setDetails('')
                                 setOpenModal(!openModal)

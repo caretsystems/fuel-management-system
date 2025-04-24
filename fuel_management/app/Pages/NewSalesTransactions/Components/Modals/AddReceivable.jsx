@@ -15,11 +15,11 @@ import CurrencyFormatter from "~/Components/Lib/CurrencyFormatter";
 import SimpleSelect from "~/Components/SimpleSelect";
 import { DummyDesc, SampleEmployeeName } from "~/Constants/Labels";
 
-const AddReceivable = ({ openModal, setOpenModal, content, setContent, title, purpose, editData, setEditData, employeeList }) => {
+const AddReceivable = ({ openModal, setOpenModal, content, setContent, title, purpose, editData, setEditData, employeeList, empChargeDescriptionList }) => {
     const [employee, setEmployee] = useState('')
     const [amount, setAmount] = useState(0)
     const [description, setDescription] = useState('')
-    const [details, setDetails] = useState('')
+    const [details, setDetails] = useState('') 
 
     useEffect(() => {
         const compute = () => {
@@ -131,7 +131,7 @@ const AddReceivable = ({ openModal, setOpenModal, content, setContent, title, pu
                         />
                         <SimpleSelect
                             label={"Employee Charge Description"}
-                            items={DummyDesc}
+                            items={empChargeDescriptionList}
                             passedValue={description}
                             toUpdate={setDescription}
                         />

@@ -2,9 +2,12 @@ import { Select, SelectItem, Autocomplete, AutocompleteItem } from "@heroui/reac
 import { useEffect, useState } from "react";
 
 
-export default function SimpleSelect({ label, items, passedValue, toUpdate, isMultiple, isDisabled, allowSearch }) {
+export default function SimpleSelect({ label, items, passedValue, toUpdate, isMultiple, isDisabled, allowSearch, allowSuggest, selectedKey }) {
     const [value, setValue] = useState(isMultiple ? [] : '');
-    
+    const [filteredItems, setFilteredItems] = useState(items);  
+
+
+
     useEffect(() => {
         if (passedValue !== undefined) {
             if (isMultiple) {
@@ -13,13 +16,30 @@ export default function SimpleSelect({ label, items, passedValue, toUpdate, isMu
                         .filter((a) => passedValue.includes(a.id))
                         .map((a) => a.description)
                 );
-            } else {
+            }
+            else if (allowSuggest){
+                setValue(passedValue)
+            }
+            else {
                 setValue(items.filter((a) => a.id == passedValue)[0]?.description);
             }
-        }
+        } 
 
         // console.log("useEffect", value, items, passedValue)
     }, [passedValue])
+
+    
+
+    const handleInputChange = (inputValue) => {
+        setValue(inputValue); // Update the input value
+        toUpdate(inputValue); // Pass the input value to the parent component
+
+        // Filter suggestions based on the input
+        const filtered = items.filter((item) =>
+            item.description.toLowerCase().includes(inputValue.toLowerCase())
+        );
+        setFilteredItems(filtered);
+    };
 
     const handleSelectionChange = (e) => { 
 
@@ -38,6 +58,11 @@ export default function SimpleSelect({ label, items, passedValue, toUpdate, isMu
                 (a) => a.description == e
             )[0]?.id;
             toUpdate(selectedId);
+        }
+        else if (allowSuggest)
+        { 
+            setValue(e); // Update the input value
+            toUpdate(e); // Pass the selected value to the parent component
         }
         else {
             const selectedId = items.filter(
@@ -58,7 +83,7 @@ export default function SimpleSelect({ label, items, passedValue, toUpdate, isMu
                     <Select
                         aria-label={label}
                         className="w-full"
-                        selectedKeys={isMultiple?[...value]:value} 
+                        selectedKeys={ isMultiple ? [...value] :  value}
                         labelPlacement="outside"
                         onChange={handleSelectionChange}
                         selectionMode={isMultiple?"multiple":"single"}
@@ -78,13 +103,16 @@ export default function SimpleSelect({ label, items, passedValue, toUpdate, isMu
                       <div className="flex w-full flex-wrap md:flex-nowrap gap-4"> 
                         <Autocomplete
                           className="w-full"
-                          defaultItems={items}
+                          defaultItems={allowSuggest?filteredItems:items}
                           label={" "}
-                          placeholder="Search ..."                          
-                            onInputChange={handleSelectionChange}
-                            onSelectionChange={handleSelectionChange} 
+                          placeholder={allowSuggest? "Type to search..." : "Search ..." }                        
+                          onInputChange={allowSuggest?(value) => handleInputChange(value): (value) => handleSelectionChange(value) }
+                          onSelectionChange={(value) => handleSelectionChange(value)} 
+                          allowsCustomValue={allowSuggest} 
+                          value={selectedKey}
+                          defaultSelectedKey={selectedKey}
                         >
-                          {(item) => <AutocompleteItem key={item.description}>{item.description}</AutocompleteItem>}
+                          {(item) => <AutocompleteItem key={item.description} value={item.description}>{item.description}</AutocompleteItem>}
                         </Autocomplete>
                       </div>
                     ) :

@@ -4,7 +4,7 @@ import DepartmentSales from "../Accordions/DepartmentSales"
 import SalesAccordion from "../Accordions/SalesAccordion"
 
 import { fetchCustomers } from "~/Hooks/Setup/GlobalRecords/Customer/useCustomers";
-import { fetchProductList, fetchPaymentModeList, fetchInventoryCategoryList } from "~/Hooks/Sales/useGetParams";
+import { fetchProductList, fetchPaymentModeList, fetchInventoryCategoryList, fetchDiscountList, fetchEmpChargeDescriptionList } from "~/Hooks/Sales/useGetParams";
 
 const CashierInput = ({
     selectedMode,
@@ -23,12 +23,14 @@ const CashierInput = ({
     setFuelData,
     discountData,
     setDiscountData,
-    recievableData,
-    setRecievableData,
+    receivableData,
+    setReceivableData,
     checkData,
     setCheckData,
     inventoryData,
-    setInventoryData
+    setInventoryData,
+    disableAccordion,
+    transactionUniqueID,
 }) => {
 
     
@@ -36,7 +38,9 @@ const CashierInput = ({
     const [customerList, setCustomerList] = useState([])
     const [paymentModeList, setPaymentModeList] = useState([])
     const [invCategoryList, setInvCategoryList] = useState([])
-
+    const [discountList, setDiscountList] = useState([])
+    const [empChargeDescriptionList, setEmpChargeDescriptionList] = useState([])
+    
     const [fuelLubes,setFuelLubes] = useState([])
     
     useEffect(()=>{
@@ -48,6 +52,22 @@ const CashierInput = ({
                 category: prod.category
             }));
             setProductList(formattedProducts);  
+
+
+
+            const formattedLubes = formattedProducts
+            .filter(
+                (product) =>
+                    product.category.includes("lube") //&& // Check if category is "lube"
+                    //poData.content.some((po) => po.product === product.id) // Check if product id exists in poData
+            )
+            .map((product) => ({
+                 id: product.id,
+                 description: product.description,
+                 category: product.category,
+            })); 
+            setFuelLubes(formattedLubes);  
+
         };
         getProducts(); 
 
@@ -69,7 +89,6 @@ const CashierInput = ({
             setPaymentModeList(formattedPaymentModes);
         };
         getPaymentMode();
-
         
         const getInventoryCategory = async () => {
             const result = await fetchInventoryCategoryList();
@@ -81,30 +100,31 @@ const CashierInput = ({
         };
         getInventoryCategory();
         
-        
-    },[])
 
-    
-    useEffect(()=>{
-        if(poData?.content?.length>0)
-        { 
-            const formattedLubes = productList
-            .filter(
-                (product) =>
-                    product.category.includes("lube") //&& // Check if category is "lube"
-                    //poData.content.some((po) => po.product === product.id) // Check if product id exists in poData
-            )
-            .map((product) => ({
-                 id: product.id,
-                 description: product.description,
-                 category: product.category,
+        const getDiscountList = async () => {
+            const result = await fetchDiscountList();
+            const formattedDiscounts = result?.message?.map((dl) => ({
+                id: dl.id,
+                description: dl.code
             }));
-            
-            setFuelLubes(formattedLubes);
-        }
-    },[poData])
+            setDiscountList(formattedDiscounts);
+        };
+        getDiscountList();
+        
 
+        const getEmpChargeDescriptionList = async () => {
+            const result = await fetchEmpChargeDescriptionList();
+            const formattedEmpChargeDescriptions = result?.message?.map((cd) => ({
+                id: cd.id,
+                description: cd.name
+            }));
+            setEmpChargeDescriptionList(formattedEmpChargeDescriptions);
+        };
+        getEmpChargeDescriptionList(); 
+    },[])
+ 
 
+     
 //    console.log("CASHIER INPUT","PO INHOUSE ACCORION", "1", poData, productList, " count:", poData?.content?.length)
     return (
         <>
@@ -124,6 +144,8 @@ const CashierInput = ({
                     productList={productList} 
                     customerList={customerList} 
                     paymentModeList={paymentModeList} 
+                    disableAccordion={disableAccordion}
+                    transactionUniqueID={transactionUniqueID}
                 />
             </div>
             <div>
@@ -136,8 +158,8 @@ const CashierInput = ({
                     setFuelData={setFuelData}
                     discountData={discountData}
                     setDiscountData={setDiscountData}
-                    recievableData={recievableData}
-                    setRecievableData={setRecievableData}
+                    receivableData={receivableData}
+                    setReceivableData={setReceivableData}
                     checkData={checkData}
                     setCheckData={setCheckData}
                     inventoryData={inventoryData}
@@ -145,6 +167,9 @@ const CashierInput = ({
                     employee={employee}
                     invCategoryList={invCategoryList} 
                     fuelLubes={fuelLubes}
+                    discountList={discountList}
+                    empChargeDescriptionList={empChargeDescriptionList}
+                    disableAccordion={disableAccordion}
                 />
             </div>
         </>

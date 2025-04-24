@@ -16,10 +16,32 @@ router.get("/fuelMasters", async (req, res) => {
                   b.name category,
                   a.details,
                   a.color,
-                  a.status
+                  a.status,
+                  coalesce(fuelprice.price,0) price
       FROM        fuelMaster a
       INNER JOIN  dropdown b
               ON  a.categoryId = b.id
+      left join (
+	      	select fuelmasterid, sum(transct) as Price from (
+	            select 
+	            row_number() over(partition by a.effectivity_date
+                                            ,a.station_id
+                                            ,a.shift_id 
+                                            order by a.effectivity_date desc ) RN, 
+	            flin.fuelmasterid,
+	            flin.transct
+	            from public.dailysalesinput_hdr a
+	            inner join public.dailysalesinput_fuelhdr fhdr
+	            on fhdr.dailysalesinputid = a."ID"
+				inner join public.dailysalesinput_fuellin flin 
+				on fhdr.id = flin.dailysalesinputfuelhdrid
+	            where a.input_mode IN (1,2)
+			) trans
+	            where trans.RN=1
+	        group by trans.fuelmasterid
+      ) fuelprice
+      on fuelprice.fuelmasterid= a.id
+      ORDER BY a.code asc
     `);
 
     await client.query("COMMIT");

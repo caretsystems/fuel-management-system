@@ -3,7 +3,7 @@ import { FuelInputRows } from "./Accordions/Rows/FuelInputRows"
 import CurrencyFormatter from "~/Components/Lib/CurrencyFormatter";
 
 const FuelSalesInput = ({fuelSales, setFuelSales}) => {
-    const tableHeader = ["Fuel", "Trans Ct", "Volume", "Amount"]
+    const tableHeader = ["Fuel", "Price", "Trans Ct", "Volume", "Amount"]
 
     const handleDiscount = (input) => {
         setFuelSales({

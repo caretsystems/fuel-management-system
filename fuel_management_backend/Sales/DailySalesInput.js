@@ -39,13 +39,9 @@ router.post("/posUpload", upload.single("pos"), async (req, res) => {
 });
 
 router.get("/getDailySalesInput", async (req, res) => {
-
-    const { effectivityDate, selectedStation } = req.query;
-
+ 
+    const { effectivityDate, selectedStation } = req.query; 
     try {
-        
-             
-
             let query = `
             SELECT      "ID",
                         station_id,
@@ -56,10 +52,19 @@ router.get("/getDailySalesInput", async (req, res) => {
             FROM        public.dailysalesinput_hdr AS a
             WHERE       a."effectivity_date"::date = ($1::date)
         `
+
+
         if (selectedStation != '') {
-            query += `
-                AND     a."station_id" = ANY ($2::int[])
-            `
+            
+            if (Array.isArray(selectedStation)) { 
+                query += `
+                    AND     a."station_id" = ANY ($2::int[])
+                `
+            } else { 
+                query += `
+                    AND     a."station_id" = $2
+                `
+            }
         }
         
         let bindData = [effectivityDate]
@@ -346,7 +351,8 @@ router.get("/getCashierFuelData", async (req, res) => {
         let query = `
             SELECT 		b.*,  
                         c.code, 
-                        c.color
+                        c.color,
+                        b.transct As price
             FROM 		public.dailysalesinput_fuelhdr AS a
             LEFt JOIN	public.dailysalesinput_fuellin AS b
             ON			b.dailysalesinputfuelhdrid = a.id
@@ -373,6 +379,7 @@ router.get("/getCashierFuelData", async (req, res) => {
                     fuelId: Number(data[i].fuelmasterid),
                     fuelName: data[i].code,
                     color: data[i].color,
+                    price: Number(data[i].transct),
                     transCSt: Number(fuelRef.get(data[i].fuelmasterid).transct) + Number(data[i].transct),
                     volume: Number(fuelRef.get(data[i].fuelmasterid).volume) + Number(data[i].volume),
                     amount: Number(fuelRef.get(data[i].fuelmasterid).amount) + Number(data[i].amount)
@@ -382,6 +389,7 @@ router.get("/getCashierFuelData", async (req, res) => {
                     fuelId: Number(data[i].fuelmasterid),
                     fuelName: data[i].code,
                     color: data[i].color,
+                    price: Number(data[i].transct),
                     transCt: Number(data[i].transct),
                     volume: Number(data[i].volume),
                     amount: Number(data[i].amount)

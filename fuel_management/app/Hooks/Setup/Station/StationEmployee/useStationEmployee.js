@@ -11,6 +11,26 @@ const fetchStationEmployees = async (stationId, shiftId) => {
         throw error;
     }
 };
+const fetchStationEmployeesList = async (stationId) => {
+    try {
+        const response = await apiClient.get(`${endPoints.Stations}/Station/${stationId}/EmployeesList`);
+
+        return response.data;
+    }
+    catch (error) {
+        throw error;
+    }
+};
+const fetchStationUserList = async (stationId) => {
+    try {
+        const response = await apiClient.get(`${endPoints.Stations}/Station/${stationId}/UserList`);
+
+        return response.data;
+    }
+    catch (error) {
+        throw error;
+    }
+};
 
 const fetchStationStationManagers = async (stationId) => {
     try {
@@ -38,6 +58,8 @@ const fetchStationShiftManagers = async (stationId, shiftId) => {
 
 export {
     fetchStationEmployees,
+    fetchStationUserList,
+    fetchStationEmployeesList,
     fetchStationShiftManagers, 
     fetchStationStationManagers
 };

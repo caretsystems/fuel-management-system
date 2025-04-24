@@ -37,6 +37,66 @@ router.get("/Station/:stationId/:shiftId/Employees", async (req, res) => {
 });
 
 
+router.get("/Station/:stationId/EmployeesList", async (req, res) => {
+    const client = await pool.connect();
+
+    try {
+        const { stationId } = req.params;
+
+        await client.query("BEGIN");
+
+        const result = await client.query(`            
+            SELECT 		u.id, CONCAT(u.firstname, ' ', u.lastname) AS description
+--            from employee e
+            from users u
+--            join users u on e.user_id=u.id
+        `);
+
+        await client.query("COMMIT");
+
+        res.status(201).json(result.rows);
+    }
+    catch (err) {
+        await client.query("ROLLBACK");
+
+        res.status(500).json({ error: "Database query error" });
+    }
+    finally {
+        client.release();
+    }
+});
+
+
+router.get("/Station/:stationId/UserList", async (req, res) => {
+    const client = await pool.connect();
+
+    try {
+        const { stationId } = req.params;
+
+        await client.query("BEGIN");
+
+        const result = await client.query(`            
+            SELECT 		u.id, CONCAT(u.firstname, ' ', u.lastname) AS description
+--            from employee e
+            from users u
+--            join users u on e.user_id=u.id
+        `);
+
+        await client.query("COMMIT");
+
+        res.status(201).json(result.rows);
+    }
+    catch (err) {
+        await client.query("ROLLBACK");
+
+        res.status(500).json({ error: "Database query error" });
+    }
+    finally {
+        client.release();
+    }
+});
+
+
 router.get("/Station/:stationId/ShiftManager", async (req, res) => {
     const { stationId } = req.params;
     const stationIdsArray = stationId.split(',').map(id => parseInt(id.trim())); 

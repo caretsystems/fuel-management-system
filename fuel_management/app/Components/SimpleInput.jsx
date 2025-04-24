@@ -13,6 +13,7 @@ const SimpleInput = ({version, label, placeholder, icon, type, textAlign, initia
                     required 
                     value={initialValue}
                     onChange={(e)=>setInitialValue(e.target.value)}
+                    onFocus={(e) => e.target.select()}
                 />
             )}
             {version==2 && (
@@ -30,6 +31,7 @@ const SimpleInput = ({version, label, placeholder, icon, type, textAlign, initia
                     value={initialValue}
                     onValueChange={setInitialValue}
                     className="text-right"
+                    onFocus={(e) => e.target.select()}
                 />
             )}
             {version==3 && (
@@ -43,6 +45,7 @@ const SimpleInput = ({version, label, placeholder, icon, type, textAlign, initia
                         value={initialValue}
                         onChange={(e)=>setInitialValue(e.target.value)}
                         readOnly={isReadOnly}
+                        onFocus={(e) => e.target.select()}
                     />
                 </>
             )}
@@ -55,6 +58,8 @@ const SimpleInput = ({version, label, placeholder, icon, type, textAlign, initia
                         defaultValue={initialValue}
                         value={initialValue} 
                         onChange={setInitialValue}
+                        minValue={'08:00'}
+                        maxValue={'17:00'}
                     />
                 </>
             )}

@@ -2,6 +2,32 @@ const express = require("express");
 const router = express.Router();
 const pool = require("../../Config/Connection");
 
+
+
+router.get("/station/shiftList", async (req, res) => {
+  const client = await pool.connect();
+  try { 
+    await client.query("BEGIN");
+    const result = await client.query(`
+      SELECT   distinct   
+        b.id, 
+        b.name, 
+        b.details
+      FROM        shift b
+      WHERE       b.status = true
+    `);
+    await client.query("COMMIT");
+    res.status(201).json(result.rows);
+  }
+  catch (err) {
+    await client.query("ROLLBACK");
+    res.status(500).json({ error: "Database query error" });
+  }
+  finally {
+    client.release();
+  }
+});
+
 router.get("/station/:stationId/shifts", async (req, res) => {
   const client = await pool.connect();
 

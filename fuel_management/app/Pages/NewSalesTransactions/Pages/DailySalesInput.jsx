@@ -5,7 +5,7 @@ import CashierInput from "../Components/InputModes/CashierInput"
 import ManagerInput from "../Components/InputModes/ManagerInput"
 import TaxTotals from "../Components/TaxTotals"
 import VarianceCheck from "../Components/VarianceCheck"
-import { useUploadDailySalesInputForecourt } from "~/Hooks/Sales/useUploadDailySalesForecourt"
+import { useUploadDailySalesInputForecourt, saveCashAccordion } from "~/Hooks/Sales/useUploadDailySalesForecourt"
 import { useUploadDailySalesInputSelect } from "~/Hooks/Sales/useUploadDailySalesSelect"
 import { Form } from "@heroui/react"
 import useGetForecourtInput from "~/Hooks/Sales/useGetForecourtInput"
@@ -26,6 +26,7 @@ const DailySalesInput = ({
     employee,
     shiftStationManagers
 }) => {
+    
     const [cashData, setCashData] = useState({
         content: [],
         lastCash: 0,
@@ -58,7 +59,7 @@ const DailySalesInput = ({
         content: [],
         total: 0
     })
-    const [recievableData, setRecievableData] = useState({
+    const [receivableData, setReceivableData] = useState({
         content: [],
         total: 0
     })
@@ -83,6 +84,11 @@ const DailySalesInput = ({
     const [vatZeroRatedSales, setVatZeroRatedSales] = useState(0)
     const [managerTotal, setManagerTotal] = useState(0)
 
+    
+    const [disableAccordion, setDisableAccordion] = useState(false);
+    const [transactionUniqueID, setTransactionUniqueID] = useState('');
+
+
     //managerTotal computation
     useEffect(() => {
         const compute = () => {
@@ -103,7 +109,22 @@ const DailySalesInput = ({
             }
         }
         getData()
+  
+        setDisableAccordion( !(selectedMode && effectivityDate && selectedStation && selectedShift) ) 
+
+        setTransactionUniqueID(
+            effectivityDate + "|" +
+            selectedMode + "|" +
+            selectedStation + "|" +
+            selectedShift + "|" +
+            selectedShiftManager[0]
+        )
+
     }, [selectedMode, effectivityDate, selectedStation, selectedShift])
+
+    
+    
+ 
 
     useEffect(() => {
         const getData = async () => {
@@ -115,6 +136,7 @@ const DailySalesInput = ({
                         fuelId: item.id,
                         fuelName: item.code,
                         color: item?.color,
+                        price: item?.price??0,
                         transCt: 0,
                         volume: 0,
                         amount: 0
@@ -123,7 +145,7 @@ const DailySalesInput = ({
                 setFuelData({
                     ...fuelData,
                     content: tempArray
-                })
+                }) 
             }
 
             if (selectedStation!='' && selectedStation!==undefined) {
@@ -255,13 +277,13 @@ const DailySalesInput = ({
 
     useEffect(() => {
         const compute = () => {
-            let sum = recievableData?.content?.reduce((total, data) => {
+            let sum = receivableData?.content?.reduce((total, data) => {
                 return total = total + data?.amount
             }, 0)
-            setRecievableData({ ...recievableData, total: sum })
+            setReceivableData({ ...receivableData, total: sum })
         }
-        compute()
-    }, [recievableData?.content])
+        compute() 
+    }, [receivableData?.content])
 
     useEffect(() => {
         const compute = () => {
@@ -285,11 +307,11 @@ const DailySalesInput = ({
     //net department sales total computation
     useEffect(() => {
         const compute = () => {
-            let sum = (lubricantSalesData?.total + fuelData?.total) - (discountData.total + recievableData.total + checkData.total)
+            let sum = (lubricantSalesData?.total + fuelData?.total) - (discountData.total + receivableData.total + checkData.total)
             setNetDepartmentTotal(sum)
         }
         compute()
-    }, [lubricantSalesData?.total, fuelData?.total, inventoryData?.total, discountData.total, recievableData.total, checkData.total])
+    }, [lubricantSalesData?.total, fuelData?.total, inventoryData?.total, discountData.total, receivableData.total, checkData.total])
 
     //variance computation
     useEffect(() => {
@@ -299,8 +321,8 @@ const DailySalesInput = ({
         }
         compute()
     }, [salesGrandTotal, netDepartmentTotal])
-
-    const submitHandler = async () => {
+ 
+    const submitHandler = async () => { 
         try {
             if (selectedStation == '') alert("Please select a station!")
             else if (selectedShiftManager == '') alert("Please select an employee!")
@@ -312,9 +334,11 @@ const DailySalesInput = ({
                     effectivityDate,
                     selectedStation,
                     selectedShiftManager,
-                    selectedShift
-                }
+                    selectedShift,
+                } 
+                data.append("UniqueID", transactionUniqueID)
                 data.append("filterData", JSON.stringify(filterData))
+                
                 if (selectedMode != 3) {
                     data.append("cashData", JSON.stringify(cashData))
                     selectedMode == 1 && data.append("poData", JSON.stringify(poData))
@@ -324,7 +348,7 @@ const DailySalesInput = ({
                     selectedMode == 1 && data.append("lubricantSalesData", JSON.stringify(lubricantSalesData))
                     selectedMode == 1 && data.append("fuelData", JSON.stringify(fuelData))
                     data.append("discountData", JSON.stringify(discountData))
-                    selectedMode == 1 && data.append("recievableData", JSON.stringify(recievableData))
+                    selectedMode == 1 && data.append("receivableData", JSON.stringify(receivableData))
                     selectedMode == 1 && data.append("checkData", JSON.stringify(checkData))
                     selectedMode == 2 && data.append("inventoryData", JSON.stringify(inventoryData))
 
@@ -342,18 +366,19 @@ const DailySalesInput = ({
                     data.append("managerTotal", managerTotal)
                     data.append("comment", comment)
                 }
+                
                 if (selectedMode == 1) {
                     const res = await useUploadDailySalesInputForecourt(data)
                     alert("useUploadDailySalesInputForecourt " + res.message)
-                    setOpenAdd(false)
+                    // setOpenAdd(false)
                 } else if (selectedMode == 2) {
                     const res = await useUploadDailySalesInputSelect(data)
                     alert("useUploadDailySalesInputSelect " + res.message)
-                    setOpenAdd(false)
+                    // setOpenAdd(false)
                 } else if (selectedMode == 3) {
                     const res = await useUploadDailySalesInputManager(data)
                     alert("useUploadDailySalesInputManager " + res.message)
-                    setOpenAdd(false)
+                    // setOpenAdd(false)
                 }
             }
         } catch (err) {
@@ -361,7 +386,7 @@ const DailySalesInput = ({
             alert("CATCH ERROR "+err)
         }
     }
-
+ 
     return (
         <Form className="grid lg:grid-cols-9 gap-8">
             <div className="lg:col-span-6 grid gap-10">
@@ -384,12 +409,15 @@ const DailySalesInput = ({
                         setFuelData={setFuelData}
                         discountData={discountData}
                         setDiscountData={setDiscountData}
-                        recievableData={recievableData}
-                        setRecievableData={setRecievableData}
+                        receivableData={receivableData}
+                        setReceivableData={setReceivableData}
                         checkData={checkData}
                         setCheckData={setCheckData}
                         inventoryData={inventoryData}
                         setInventoryData={setInventoryData}
+
+                        disableAccordion={disableAccordion}
+                        transactionUniqueID={transactionUniqueID} 
                     />
                     :
                     <ManagerInput
@@ -428,7 +456,8 @@ const DailySalesInput = ({
                     <ActionButtons
                         selectedMode={selectedMode}
                         submitHandler={submitHandler}
-                        setOpenAdd={setOpenAdd}
+                        setOpenAdd={setOpenAdd}                        
+                        disableAccordion={disableAccordion}
                     />
                 </div>
             </div>

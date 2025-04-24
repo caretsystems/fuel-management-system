@@ -6,7 +6,7 @@ import { SampleEmployeeName } from "~/Constants/Labels";
 export const CashRows2 = ({ currentData, content, setContent, setPurpose, setOpenAdd, setEditData, employee }) => {
     const today = new Date();
     // return today.toISOString().split("T")[0];
- console.log("CashRows2",currentData,currentData)
+//  console.log("CashRows2",currentData,currentData)
     return (
         <>
             <td className="px-6 py-1">

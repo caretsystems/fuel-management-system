@@ -37,8 +37,63 @@ const fetchInventoryCategoryList = async () => {
     }
 };
 
+
+const fetchDiscountList = async () => {
+    try {
+        const response = await apiClient.get(
+            `/SalesParams/DiscountList`
+        );
+        return response.data;
+    }
+    catch (error) {
+        throw error;
+    }
+};
+
+
+const fetchEmpChargeDescriptionList = async () => {
+    try {
+        const response = await apiClient.get(
+            `/SalesParams/EmpChargeDescriptionList`
+        );
+        return response.data;
+    }
+    catch (error) {
+        throw error;
+    }
+}; 
+
+const fetchCustomerPlateNo = async (customerId) => {
+    try {
+        const response = await apiClient.get(
+            `/SalesParams/getcustomerplateno/${customerId}`
+        );
+        return response.data;
+    }
+    catch (error) {
+        throw error;
+    }
+};
+
+
+const fetchPriceBasedonProduct = async (productid, category) => {
+    try {
+        const response = await apiClient.get(
+            `/SalesParams/getpoamountbasedonproduct/${productid}/${category}`
+        );
+        return response.data;
+    }
+    catch (error) {
+        throw error;
+    }
+};
+
 export  {
     fetchProductList,
     fetchPaymentModeList,
-    fetchInventoryCategoryList
+    fetchInventoryCategoryList,
+    fetchDiscountList,
+    fetchEmpChargeDescriptionList,
+    fetchCustomerPlateNo,
+    fetchPriceBasedonProduct
 };

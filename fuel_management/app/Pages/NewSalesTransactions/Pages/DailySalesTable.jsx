@@ -3,18 +3,24 @@ import { useState, useEffect } from "react";
 import { Button } from "@heroui/react";
 import useGetDailySalesInput from "~/Hooks/Sales/useGetDailySalesInput";
 import CustomTable from "../Components/CustomTable";
-import { InputMode, Locations, SampleEmployeeName, Shifts } from "~/Constants/Labels";
+import { InputMode } from "~/Constants/Labels";
+
+
 
 export const DailySalesTable = ({
     openAdd,
     setOpenAdd,
     effectivityDate,
     selectedMode,
-    selectedStation,
+    selectedStation,setSelectedStation,
     selectedShiftManager,
     selectedShift,
-    setEditId
+    setEditId,
+    employee, 
+    shiftList,
+    stationList
 }) => {
+     
     const [dailySales, setDailySales] = useState([
         // {
         //     ID: 0,
@@ -39,11 +45,10 @@ export const DailySalesTable = ({
         { key: "station_id", label: "Station Code", hidden: false },
         { key: "shift_id", label: "Shift No.", hidden: false },
         { key: "employee_id", label: "Created By", hidden: false }
-    ]
-
+    ] 
     useEffect(() => {
         const getData = async () => {
-            const formattedDate = new Date(effectivityDate).toISOString().split("T")[0];
+            const formattedDate = new Date(effectivityDate).toLocaleDateString("en-CA"); 
             const res = await useGetDailySalesInput(formattedDate, selectedStation)
             
 
@@ -53,12 +58,12 @@ export const DailySalesTable = ({
                         ID: item.ID,
                         effectivity_date: new Date(item.effectivity_date).toISOString().split("T")[0] ,
                         input_mode: InputMode.filter((mode)=> mode.id===item.input_mode)[0]?.description,
-                        shift_id: Shifts.filter((shift)=> shift.id===item.shift_id)[0]?.description,
-                        employee_id: SampleEmployeeName.filter((emp)=> emp.id===item.employee_id)[0]?.description,
-                        station_id: Locations.filter((loc)=> loc.id===item.station_id)[0]?.description
+                        shift_id: shiftList.filter((shift)=> shift.id===item.shift_id)[0]?.description,
+                        employee_id: employee.filter((emp)=> emp.id===item.employee_id)[0]?.description,
+                        station_id: stationList.filter((loc)=> loc.id===item.station_id)[0]?.description
                     }
                 })
-                setDailySales(cleanData)
+                setDailySales(cleanData)  
             }
         }
         getData()

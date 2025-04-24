@@ -1,5 +1,5 @@
 import { Accordion, AccordionItem } from "@heroui/react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { CashAccordion } from "./AccordionItem/CashAccordion";
 import { InHouseAccordion } from "./AccordionItem/InHouseAccordion";
 import { RedemptionAccordion } from "./AccordionItem/RedemptionAccordion";
@@ -19,8 +19,11 @@ const SalesAccordion = ({
     setCardData,
     productList, 
     customerList,
-    paymentModeList
+    paymentModeList,
+    disableAccordion,
+    transactionUniqueID
 }) => {
+
 
     return (
         <Accordion
@@ -73,15 +76,17 @@ const SalesAccordion = ({
                 className="w-full bg-gray-100 shadow-none overflow-hidden relative"
                 key={"Cash"}
                 aria-label={"Cash"}
-                title={"Cash"}
+                title={"Cash"} 
                 startContent={
                     <label className="font-semibold">{CurrencyFormatter(cashData?.total)}</label>
                 }
+                isDisabled={disableAccordion}
             >
                 <CashAccordion
                     employee={employee}
                     cashData={cashData}
                     setCashData={setCashData}
+                    transactionUniqueID={transactionUniqueID}
                 />
             </AccordionItem>
             {selectedMode == 1 && (
@@ -93,6 +98,7 @@ const SalesAccordion = ({
                     startContent={
                         <label className="font-semibold">{CurrencyFormatter(poData?.total)}</label>
                     }
+                    isDisabled={disableAccordion}
                 >
                     <InHouseAccordion
                         poData={poData}
@@ -110,6 +116,7 @@ const SalesAccordion = ({
                 startContent={
                     <label className="font-semibold">{CurrencyFormatter(redemptionData?.total)}</label>
                 }
+                isDisabled={disableAccordion}
             >
                 <RedemptionAccordion
                     redemptionData={redemptionData}
@@ -125,6 +132,7 @@ const SalesAccordion = ({
                 startContent={
                     <label className="font-semibold">{CurrencyFormatter(cardData?.total)}</label>
                 }
+                isDisabled={disableAccordion}
             >
                 <CardAccordion
                     cardData={cardData}

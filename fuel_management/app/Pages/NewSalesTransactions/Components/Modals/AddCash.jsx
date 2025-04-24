@@ -24,7 +24,14 @@ const AddCash = ({ openModal, setOpenModal, content, setContent, title, purpose,
     ]
     const [billsData, setBillsData] = useState([])
     const [totalAmount, setTotalAmount] = useState(0);
-    const [time, setTime] = useState(undefined);
+    const [time, setTime] = useState(() => {
+        const now = new Date();
+        return new Intl.DateTimeFormat("en-US", {
+            hour: "2-digit",
+            minute: "2-digit",
+            hour12: true, // Ensures 12-hour format with AM/PM
+        }).format(now);
+    });
     const [receivedBy, setReceivedBy] = useState('');
 
     useEffect(() => {
@@ -69,6 +76,7 @@ const AddCash = ({ openModal, setOpenModal, content, setContent, title, purpose,
                 ...content,
                 content: tempArray
             })
+            
             setBillsData([])
             setTotalAmount(0)
             setTime(new Date(Date.now()))
@@ -190,7 +198,7 @@ const AddCash = ({ openModal, setOpenModal, content, setContent, title, purpose,
                                 setInitialValue={setTime}
                             /> */}
                             <label className="text-gray-700">Time</label>
-                            <input className="p-1.5 border-2 rounded-xl" type="time" value={time} onChange={(e)=>setTime(e.target.value)}/>
+                            <input className="p-1.5 border-2 rounded-xl" min={'08:00'} max={'10:00'} type="time" value={time} onChange={(e)=>setTime(e.target.value)}/>
                         </div>
                         <div>
                             <SimpleSelect

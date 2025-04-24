@@ -12,10 +12,9 @@ import { PlusIcon } from 'lucide-react'
 import { useState, useEffect } from "react";
 import { CashRows } from "../Accordions/Rows/CashRows";
 import CurrencyFormatter from "~/Components/Lib/CurrencyFormatter";
-import SimpleSelect from "~/Components/SimpleSelect";
-import { Discounts, SampleEmployeeName } from "~/Constants/Labels";
+import SimpleSelect from "~/Components/SimpleSelect"; 
 
-const AddDiscount = ({ openModal, setOpenModal, content, setContent, title, purpose, editData, setEditData }) => {
+const AddDiscount = ({ openModal, setOpenModal, content, setContent, title, purpose, editData, setEditData, discountList }) => {
     const [discount, setDiscount] = useState('')
     const [quantity, setQuantity] = useState(0)
     const [amount, setAmount] = useState(0)
@@ -108,9 +107,10 @@ const AddDiscount = ({ openModal, setOpenModal, content, setContent, title, purp
                     <div className="h-auto grid gap-4">
                         <SimpleSelect
                             label={"Discount Name"}
-                            items={Discounts}
+                            items={discountList}
                             passedValue={discount}
                             toUpdate={setDiscount}
+                            allowSearch={true}
                         />
                         <SimpleInput
                             version={3}

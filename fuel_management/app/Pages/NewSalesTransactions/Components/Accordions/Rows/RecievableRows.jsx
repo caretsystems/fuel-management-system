@@ -2,7 +2,7 @@ import CurrencyFormatter from "~/Components/Lib/CurrencyFormatter";
 import { Button } from "@heroui/react";
 import { SampleEmployeeName } from "~/Constants/Labels";
 
-export const RecievableRows = ({ currentData, content, setContent, setPurpose, setOpenAdd, setEditData }) => {
+export const RecievableRows = ({ currentData, content, setContent, setPurpose, setOpenAdd, setEditData, employeeList, empChargeDescriptionList }) => {
 
     return (
         <>
@@ -10,13 +10,13 @@ export const RecievableRows = ({ currentData, content, setContent, setPurpose, s
                 {currentData?.id + 1}
             </td>
             <td className="px-6 py-1">
-                {SampleEmployeeName.filter((item)=>item.id==currentData?.employee)[0]?.description}
+                {employeeList.filter((item)=>item.id==currentData?.employee)[0]?.description}
             </td>
             <td className="px-6 py-1">
                 {CurrencyFormatter(currentData?.amount)}
             </td>
             <td className="px-6 py-1">
-                {currentData?.description}
+            {empChargeDescriptionList.filter((item)=>item.id==currentData?.description)[0]?.description}
             </td>
             <td className="py-1">
                 <Button

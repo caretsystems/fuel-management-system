@@ -4,7 +4,8 @@ import { ArrowRight, Plus } from 'lucide-react';
 const ActionButtons = ({ 
     selectedMode, 
     submitHandler, 
-    setOpenAdd,
+    setOpenAdd, 
+    disableAccordion
  }) => {
     return (
         <>
@@ -37,10 +38,10 @@ const ActionButtons = ({
                 <Button color="danger" className="w-min rounded-md font-semibold text-base text-white" isDisabled={true}>
                     Delete
                 </Button>
-                <Button onPress={submitHandler} color="primary" className="w-min rounded-md font-semibold text-base text-white">
+                <Button onPress={submitHandler} color="primary" className="w-min rounded-md font-semibold text-base text-white" isDisabled={disableAccordion}>
                     Save
                 </Button>
-                <Button className="w-min rounded-md font-semibold text-base text-blue-600 bg-blue-200">
+                <Button className="w-min rounded-md font-semibold text-base text-blue-600 bg-blue-200" isDisabled={disableAccordion}>
                     View History
                 </Button>
             </div>

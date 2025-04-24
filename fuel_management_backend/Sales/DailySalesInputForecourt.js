@@ -19,7 +19,9 @@ const upload = multer({ storage: storage });
 router.post("/dailySalesInputForecourt", upload.single("pos"), async (req, res) => {
     const client = await pool.connect();
         const uploadedFile = req.file
-        const uploadedData = {
+        const UniqueID = req.body?.UniqueID
+        const uploadedData = { 
+            filterData: JSON.parse(req.body?.filterData),
             cashData: JSON.parse(req.body?.cashData),
             poData: JSON.parse(req.body?.poData),
             redemptionData: JSON.parse(req.body?.redemptionData),
@@ -27,64 +29,228 @@ router.post("/dailySalesInputForecourt", upload.single("pos"), async (req, res) 
             lubricantSalesData: JSON.parse(req.body?.lubricantSalesData),
             fuelData: JSON.parse(req.body?.fuelData),
             discountData: JSON.parse(req.body?.discountData),
-            recievableData: JSON.parse(req.body?.recievableData),
+            receivableData: JSON.parse(req.body?.receivableData),
             checkData: JSON.parse(req.body?.checkData),
-            filterData: JSON.parse(req.body?.filterData),
             salesGrandTotal: req.body?.salesGrandTotal,
             netDepartmentTotal: req.body?.netDepartmentTotal,
             variance: req.body?.variance,
             comment: req.body?.comment
         }
- 
-
+  
         try {
 
         await client.query("BEGIN");
         //saving main sales input header
-        const mainHeaderResult = await client.query(
-            `INSERT INTO dailysalesinput_hdr
-                        (
-                            input_mode,
-                            station_id,
-                            shift_id,
-                            employee_id,
-                            effectivity_date,
-                            comment
-                        )
-            VALUES      ($1, $2, $3, $4, $5, $6)
-            RETURNING   *`,
-            [
-                uploadedData.filterData?.selectedMode,
-                uploadedData.filterData?.selectedStation,
-                uploadedData.filterData?.selectedShift,
-                uploadedData.filterData?.selectedShiftManager[0],
-                uploadedData.filterData?.effectivityDate,
-                uploadedData?.comment
-            ]
-        );
-        let savedMainId = mainHeaderResult.rows[0].ID
+        const savedMainId = await dailySalesInputForecourt_Save_header(client,req, res, UniqueID, uploadedData);
+        // saving cash input header 
+        const savedCashId = await dailySalesInputForecourt_Save_Cash_header(client,req, res, UniqueID, savedMainId, uploadedData)  
+        // saving cash Lines & Rows       
+        await dailySalesInputForecourt_Save_Cash_Line(client,req, res, UniqueID, savedCashId, uploadedData);
+
+        //saving po input header
+        const savedPoId = await dailySalesInputForecourt_Save_POInHouse_header(client,req, res, UniqueID, savedMainId, uploadedData)
+        //saving po line items
+        await dailySalesInputForecourt_Save_POInHouse_Line(client,req, res, UniqueID, savedPoId, uploadedData)
+
+        //saving redemption input header
+        const savedRedemptionId = await dailySalesInputForecourt_Save_Redemption_header(client,req, res, UniqueID, savedMainId, uploadedData)
+        //saving redemption line items
+        await dailySalesInputForecourt_Save_Redemption_Line(client,req, res, UniqueID, savedRedemptionId, uploadedData)
+
+        //saving card input header
+        const savedCardId = await dailySalesInputForecourt_Save_Card_header(client,req, res, UniqueID, savedMainId, uploadedData)
+        //saving card line items
+        await dailySalesInputForecourt_Save_Card_Line(client,req, res, UniqueID, savedCardId, uploadedData) 
 
         
-        // saving cash input header
-        const cashHeaderResult = await client.query(
-            `INSERT INTO dailysalesinput_cashhdr
-                        (
-                            input_id,
-                            total,
-                            last_cash,
-                            float
-                        )
-            VALUES      ($1, $2, $3, $4)
-            RETURNING   *`,
-            [
-                savedMainId,
-                uploadedData.cashData?.total,
-                uploadedData.cashData?.lastCash,
-                uploadedData.cashData?.float
-            ]
-        );
-        let savedCashId = cashHeaderResult.rows[0].ID
+        //saving lubricant input header 
+        const savedLubricantId = await dailySalesInputForecourt_Save_FCLubricant_header(client,req, res, UniqueID, savedMainId, uploadedData)
+        //saving lubricant line items
+        await dailySalesInputForecourt_Save_FCLubricant_Line(client,req, res, UniqueID, savedLubricantId, uploadedData)
 
+        //saving fuel input header
+        const savedFuelId = await dailySalesInputForecourt_Save_FuelSales_header(client,req, res, UniqueID, savedMainId, uploadedData)
+        console.log("savedFuelId", savedFuelId)
+        //saving fuel line items
+        await dailySalesInputForecourt_Save_FuelSales_Line(client,req, res, UniqueID, savedFuelId, uploadedData)
+
+    
+        //saving discount input header
+        const savedDiscountId = await dailySalesInputForecourt_Save_Discount_header(client,req, res, UniqueID, savedMainId, uploadedData)
+        // //saving discount line items
+        await dailySalesInputForecourt_Save_Discount_Line(client,req, res, UniqueID, savedDiscountId, uploadedData)
+
+        
+        //saving receivable input header
+        const savedReceivableId = await dailySalesInputForecourt_Save_Receivable_header(client,req, res, UniqueID, savedMainId, uploadedData)
+        // //saving receivable line items
+        await dailySalesInputForecourt_Save_Receivable_Line(client,req, res, UniqueID, savedReceivableId, uploadedData)
+
+        //saving check input header
+        const savedCheckId = await dailySalesInputForecourt_Save_Check_header(client,req, res, UniqueID, savedMainId, uploadedData)
+        // //saving check line items
+        await dailySalesInputForecourt_Save_Check_Line(client,req, res, UniqueID, savedCheckId, uploadedData)
+
+        //saving variance data
+        await dailySalesInputForecourt_Save_Variance(client,req, res, UniqueID, savedMainId, uploadedData)
+
+
+        await client.query("COMMIT");
+
+        console.log("success: " + savedMainId)
+        res.status(201).json({ success: true, message: "successfully saved with an id of " + savedMainId });
+    }
+    catch (err) {
+        console.log(err)
+        await client.query("ROLLBACK");
+
+        res.status(500).json({ source:"dailySalesInputForecourt",error: "Database query error", params : uploadedData 
+         });
+    }
+    finally {
+        client.release();
+    }
+});
+
+const dailySalesInputForecourt_Save_header=async(client,req, res, UniqueID, uploadedData)=>{
+    try{ 
+
+        const qExistID = `
+        select "ID" from dailysalesinput_hdr
+        where TransId=$1
+        `
+        let rExistID = await pool.query(qExistID, [UniqueID]);         
+        const ExistID = rExistID.rows[0]?.ID !== null ? rExistID.rows[0]?.ID : 0
+        if ( ExistID > 0 )
+        { 
+            const cashHeaderResult = await client.query(
+                `UPDATE dailysalesinput_hdr
+                            SET
+                                comment = $1
+                 WHERE "ID"=$2 AND TransId=$3 `,
+                [
+                    uploadedData?.comment,
+                    ExistID,
+                    UniqueID
+                ]
+            );
+            return ExistID
+        }else{
+            const mainHeaderResult = await client.query(
+                `INSERT INTO dailysalesinput_hdr
+                            (
+                                input_mode,
+                                station_id,
+                                shift_id,
+                                employee_id,
+                                effectivity_date,
+                                comment,
+                                TransId
+                            )
+                VALUES      ($1, $2, $3, $4, $5, $6, $7)
+                RETURNING   *`,
+                [
+                    uploadedData.filterData?.selectedMode,
+                    uploadedData.filterData?.selectedStation,
+                    uploadedData.filterData?.selectedShift,
+                    uploadedData.filterData?.selectedShiftManager[0],
+                    uploadedData.filterData?.effectivityDate,
+                    uploadedData?.comment,
+                    UniqueID
+                ]
+            );
+            return mainHeaderResult.rows[0].ID
+        }
+    }catch (err) {
+        console.log(err)
+        await client.query("ROLLBACK");
+        res.status(500).json({ source:"dailySalesInputForecourt_Save_header", error: "Database query error" });
+    }
+    return 0;
+}
+
+const dailySalesInputForecourt_Save_Cash_header=async(client,req, res, UniqueID, MainHeaderID, uploadedData)=>{
+    try{ 
+        // CHECK IF UNIQUEID EXISTS
+        
+        const qExistID = `
+            select "ID" from dailysalesinput_cashhdr
+            where TransId=$1
+        `
+        let rExistID = await pool.query(qExistID, [UniqueID]); 
+        
+        const ExistID = rExistID.rows[0]?.ID !== null ? rExistID.rows[0]?.ID : 0
+        if ( ExistID > 0 )
+        { 
+            const cashHeaderResult = await client.query(
+                `UPDATE dailysalesinput_cashhdr
+                            SET
+                                input_id = $1,
+                                total = $2,
+                                last_cash = $3,
+                                float = $4
+                 WHERE "ID"=$5 AND TransId=$6 `,
+                [
+                    MainHeaderID,
+                    uploadedData.cashData?.total,
+                    uploadedData.cashData?.lastCash,
+                    uploadedData.cashData?.float,
+                    ExistID,
+                    UniqueID
+                ]
+            );
+            return ExistID
+        }else{
+            const cashHeaderResult = await client.query(
+                `INSERT INTO dailysalesinput_cashhdr
+                            (
+                                input_id,
+                                total,
+                                last_cash,
+                                float,
+                                TransId
+                            )
+                VALUES      ($1, $2, $3, $4, $5)
+                RETURNING   *`,
+                [
+                    MainHeaderID,
+                    uploadedData.cashData?.total,
+                    uploadedData.cashData?.lastCash,
+                    uploadedData.cashData?.float,
+                    UniqueID
+                ]
+            );
+            return cashHeaderResult.rows[0].ID
+        }
+    }catch (err) {
+        console.log(err)
+        await client.query("ROLLBACK");
+        res.status(500).json({ source:"dailySalesInputForecourt_Save_Cash_header", error: "Database query error", param: uploadedData.cashData });
+    }
+    return 0;
+}
+
+const dailySalesInputForecourt_Save_Cash_Line=async(client,req, res, UniqueID, HeaderID, uploadedData)=>{
+    try{ 
+        // CHECK IF UNIQUEID EXISTS
+        
+        const qExistID = `
+            select "ID" from dailysalesinput_cashlin
+            where cash_hdr=$1
+        `
+        let rExistID = await pool.query(qExistID, [HeaderID]); 
+        
+        const ExistID = rExistID.rows[0]?.ID !== null ? rExistID.rows[0]?.ID : 0
+        if ( ExistID > 0 )
+        { 
+            // DELETE LINE
+            await pool.query(`DELETE from dailysalesinput_cashlin WHERE cash_hdr=$1`, [HeaderID]); 
+            console.log("DELETE", "Save Cash Line", HeaderID)
+            // DELETE ROWS
+            await pool.query(`DELETE from dailysalesinput_cashlin_rows WHERE cashlin_id 
+                            in (select "ID" from public.dailysalesinput_cashlin  where cash_hdr = $1)`, [HeaderID]); 
+            console.log("DELETE", "Save Cash Rows", HeaderID)
+        }
         const queryResults = await Promise.all(
             uploadedData.cashData?.content.map((item) => {
                 return new Promise(async (resolve, reject) => {
@@ -100,7 +266,7 @@ router.post("/dailySalesInputForecourt", upload.single("pos"), async (req, res) 
                         VALUES      ($1, $2, CAST($3 AS TIME), $4)
                         RETURNING   *`,
                         [
-                            savedCashId,
+                            HeaderID,
                             item?.total,
                             item?.time,
                             item?.recievedBy
@@ -138,22 +304,85 @@ router.post("/dailySalesInputForecourt", upload.single("pos"), async (req, res) 
             })
         )
 
-        //saving po input header
-        const poHeaderResult = await client.query(
-            `INSERT INTO dailysalesinput_pohdr
-                                (
-                                    total,
-                                    input_id
-                                )
-                    VALUES      ($1, $2)
-                    RETURNING   *`,
-            [
-                uploadedData.poData?.total,
-                savedMainId
-            ]
-        );
-        let savedPoId = poHeaderResult.rows[0].ID
-        //saving po line items
+    }catch (err) {
+        console.log(err)
+        await client.query("ROLLBACK");
+        res.status(500).json({ source:"dailySalesInputForecourt_Save_Cash_Line", error: "Database query error", param: uploadedData.cashData });
+    }
+    return 0;
+}
+
+const dailySalesInputForecourt_Save_POInHouse_header=async(client,req, res, UniqueID, MainHeaderID, uploadedData)=>{
+    try{ 
+
+        const qExistID = `
+        select "ID" from dailysalesinput_pohdr
+        where TransId=$1
+        `
+        let rExistID = await pool.query(qExistID, [UniqueID]);         
+        const ExistID = rExistID.rows[0]?.ID !== null ? rExistID.rows[0]?.ID : 0
+        if ( ExistID > 0 )
+        { 
+            const cashHeaderResult = await client.query(
+                `UPDATE dailysalesinput_pohdr
+                            SET
+                                total = $1,
+                                input_id = $2
+                 WHERE "ID"=$3 AND TransId=$4 `,
+                [
+                    uploadedData.poData?.total,
+                    MainHeaderID,
+                    ExistID,
+                    UniqueID
+                ]
+            );
+            return ExistID
+        }else{
+            const poHeaderResult = await client.query(
+                `INSERT INTO dailysalesinput_pohdr
+                                    (
+                                        total,
+                                        input_id,
+                                        TransId
+                                    )
+                        VALUES      ($1, $2, $3)
+                        RETURNING   *`,
+                [
+                    uploadedData.poData?.total,
+                    MainHeaderID,
+                    UniqueID
+                ]
+            );
+            return poHeaderResult.rows[0].ID
+        }
+    }catch (err) {
+        console.log(err)
+        await client.query("ROLLBACK");
+        res.status(500).json({ source:"dailySalesInputForecourt_Save_POInHouse_header", error: "Database query error", param: uploadedData.poData });
+    }
+    return 0;
+}
+
+const dailySalesInputForecourt_Save_POInHouse_Line=async(client,req, res, UniqueID, HeaderID, uploadedData)=>{
+    try{ 
+        // CHECK IF UNIQUEID EXISTS
+        
+        const qExistID = `
+            select "ID" from dailysalesinput_polin
+            where po_hdr=$1
+        `
+        let rExistID = await pool.query(qExistID, [HeaderID]); 
+        
+        const ExistID = rExistID.rows[0]?.ID !== null ? rExistID.rows[0]?.ID : 0
+        if ( ExistID > 0 )
+        { 
+            // DELETE LINE
+            await pool.query(`DELETE from dailysalesinput_polin WHERE po_hdr=$1`, [HeaderID]);
+            console.log("DELETE", "Save PO Inhouse Line", HeaderID)
+        }
+
+
+        
         await Promise.all(
             uploadedData.poData?.content?.map((item) => {
                 return new Promise(async (resolve, reject) => {
@@ -166,40 +395,105 @@ router.post("/dailySalesInputForecourt", upload.single("pos"), async (req, res) 
                                         tax_code,
                                         product_id,
                                         quantity,
-                                        amount
+                                        amount,
+                                        plateno,
+                                        cuspono,
+                                        discountedamount
                                     )
-                        VALUES      ($1, $2, $3, $4, $5, $6, $7)`,
+                        VALUES      ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)`,
                         [
-                            savedPoId,
+                            HeaderID,
                             item?.invoiceNo,
                             item?.customerName,
                             item?.taxCode,
                             item?.product,
                             item?.quantity,
-                            item?.poAmount
+                            item?.poAmount,
+                            item?.plateNo,
+                            item?.custPONumber,
+                            item?.discountedPOAmount
                         ]
                     );
                     return resolve(true)
                 })
             })
-        )
+        ) 
+    }catch (err) {
+        console.log(err)
+        await client.query("ROLLBACK");
+        res.status(500).json({ source:"dailySalesInputForecourt_Save_POInHouse_Line", error: "Database query error", param: uploadedData.poData });
+    }
+    return 0;
+}
 
-        //saving redemption input header
-        const redemptionHeaderResult = await client.query(
-            `INSERT INTO dailysalesinput_redemptionhdr
-                                        (
-                                            total,
-                                            input_id
-                                        )
-                            VALUES      ($1, $2)
-                            RETURNING   *`,
-            [
-                uploadedData.redemptionData?.total,
-                savedMainId
-            ]
-        );
-        let savedRedemptionId = redemptionHeaderResult.rows[0].ID
-        //saving redemption line items
+const dailySalesInputForecourt_Save_Redemption_header=async(client,req, res, UniqueID, MainHeaderID, uploadedData)=>{
+    try{ 
+
+        const qExistID = `
+        select "ID" from dailysalesinput_redemptionhdr
+        where TransId=$1
+        `
+        let rExistID = await pool.query(qExistID, [UniqueID]);         
+        const ExistID = rExistID.rows[0]?.ID !== null ? rExistID.rows[0]?.ID : 0
+        if ( ExistID > 0 )
+        { 
+            const cashHeaderResult = await client.query(
+                `UPDATE dailysalesinput_redemptionhdr
+                            SET
+                                total = $1,
+                                input_id = $2
+                 WHERE "ID"=$3 AND TransId=$4 `,
+                [
+                    uploadedData.redemptionData?.total,
+                    MainHeaderID,
+                    ExistID,
+                    UniqueID
+                ]
+            );
+            return ExistID
+        }else{
+            const redemptionHeaderResult = await client.query(
+                `INSERT INTO dailysalesinput_redemptionhdr
+                                            (
+                                                total,
+                                                input_id,
+                                                TransId
+                                            )
+                                VALUES      ($1, $2, $3)
+                                RETURNING   *`,
+                [
+                    uploadedData.redemptionData?.total,
+                    MainHeaderID,
+                    UniqueID
+                ]
+            );
+            return redemptionHeaderResult.rows[0].ID
+        }
+    }catch (err) {
+        console.log(err)
+        await client.query("ROLLBACK");
+        res.status(500).json({ source:"dailySalesInputForecourt_Save_Redemption_header", error: "Database query error", param: uploadedData.redemptionData });
+    }
+    return 0;
+}
+
+const dailySalesInputForecourt_Save_Redemption_Line=async(client,req, res, UniqueID, HeaderID, uploadedData)=>{
+    try{ 
+        // CHECK IF UNIQUEID EXISTS        
+        const qExistID = `
+            select "ID" from dailysalesinput_redemptionlin
+            where redemption_hdr=$1
+        `
+        let rExistID = await pool.query(qExistID, [HeaderID]); 
+        
+        const ExistID = rExistID.rows[0]?.ID !== null ? rExistID.rows[0]?.ID : 0
+        if ( ExistID > 0 )
+        { 
+            // DELETE LINE
+            await pool.query(`DELETE from dailysalesinput_redemptionlin WHERE redemption_hdr=$1`, [HeaderID]);
+            console.log("DELETE", "Save Redemption Line", HeaderID)
+        }
+
         await Promise.all(
             uploadedData.redemptionData?.content?.map((item) => {
                 return new Promise(async (resolve, reject) => {
@@ -213,7 +507,7 @@ router.post("/dailySalesInputForecourt", upload.single("pos"), async (req, res) 
                                             )
                                 VALUES      ($1, $2, $3, $4)`,
                         [
-                            savedRedemptionId,
+                            HeaderID,
                             item?.payment,
                             item?.quantity,
                             item?.amount
@@ -223,23 +517,85 @@ router.post("/dailySalesInputForecourt", upload.single("pos"), async (req, res) 
                 })
             })
         )
+        
 
-        //saving card input header
-        const cardHeaderResult = await client.query(
-            `INSERT INTO dailysalesinput_cardhdr
-                                        (
-                                            total,
-                                            input_id
-                                        )
-                            VALUES      ($1, $2)
-                            RETURNING   *`,
-            [
-                uploadedData.cardData?.total,
-                savedMainId
-            ]
-        );
-        let savedCardId = cardHeaderResult.rows[0].ID
-        //saving card line items
+    }catch (err) {
+        console.log(err)
+        await client.query("ROLLBACK");
+        res.status(500).json({ source:"dailySalesInputForecourt_Save_Redemption_Line", error: "Database query error", param: uploadedData.redemptionData });
+    }
+    return 0;
+}
+
+const dailySalesInputForecourt_Save_Card_header = async (client, req, res, UniqueID, MainHeaderID, uploadedData) => {
+    try{ 
+
+        const qExistID = `
+        select "ID" from dailysalesinput_cardhdr
+        where TransId=$1
+        `
+        let rExistID = await pool.query(qExistID, [UniqueID]);         
+        const ExistID = rExistID.rows[0]?.ID !== null ? rExistID.rows[0]?.ID : 0
+        if ( ExistID > 0 )
+        { 
+            const cashHeaderResult = await client.query(
+                `UPDATE dailysalesinput_cardhdr
+                            SET
+                                total = $1,
+                                input_id = $2
+                 WHERE "ID"=$3 AND TransId=$4 `,
+                [
+                    uploadedData.cardData?.total,
+                    MainHeaderID,
+                    ExistID,
+                    UniqueID
+                ]
+            );
+            return ExistID
+        }else{
+            
+            const cardHeaderResult = await client.query(
+                `INSERT INTO dailysalesinput_cardhdr
+                                            (
+                                                total,
+                                                input_id,
+                                                TransId
+                                            )
+                                VALUES      ($1, $2, $3)
+                                RETURNING   *`,
+                [
+                    uploadedData.cardData?.total,
+                    MainHeaderID,
+                    UniqueID
+                ]
+            );
+            return cardHeaderResult.rows[0].ID
+        }
+    }catch (err) {
+        console.log(err)
+        await client.query("ROLLBACK");
+        res.status(500).json({ source:"dailySalesInputForecourt_Save_Card_header", error: "Database query error", param: uploadedData.cardData });
+    }
+    return 0;
+}
+
+const dailySalesInputForecourt_Save_Card_Line = async (client, req, res, UniqueID, HeaderID, uploadedData) => {
+    try{ 
+        // CHECK IF UNIQUEID EXISTS        
+        const qExistID = `
+            select "ID" from dailysalesinput_cardlin
+            where card_id=$1
+        `
+        let rExistID = await pool.query(qExistID, [HeaderID]); 
+        
+        const ExistID = rExistID.rows[0]?.ID !== null ? rExistID.rows[0]?.ID : 0
+        if ( ExistID > 0 )
+        { 
+            // DELETE LINE
+            await pool.query(`DELETE from dailysalesinput_cardlin WHERE card_id=$1`, [HeaderID]);
+            console.log("DELETE", "Save Card Settlement Line", HeaderID)
+        }
+
         await Promise.all(
             uploadedData.cardData?.content?.map((item) => {
                 return new Promise(async (resolve, reject) => {
@@ -253,7 +609,7 @@ router.post("/dailySalesInputForecourt", upload.single("pos"), async (req, res) 
                                             )
                                 VALUES      ($1, $2, $3, $4)`,
                         [
-                            savedCardId,
+                            HeaderID,
                             item?.payment,
                             item?.amount,
                             item?.details
@@ -262,24 +618,85 @@ router.post("/dailySalesInputForecourt", upload.single("pos"), async (req, res) 
                     return resolve(true)
                 })
             })
-        )
+        )        
 
-        //saving lubricant input header
-        const lubricantHeaderResult = await client.query(
-            `INSERT INTO dailysalesinput_lubricanthdr
-                                                (
-                                                    total,
-                                                    input_id
-                                                )
-                                    VALUES      ($1, $2)
-                                    RETURNING   *`,
-            [
-                uploadedData.lubricantSalesData?.total,
-                savedMainId
-            ]
-        );
-        let savedLubricantId = lubricantHeaderResult.rows[0].ID
-        //saving lubricant line items
+    }catch (err) {
+        console.log(err)
+        await client.query("ROLLBACK");
+        res.status(500).json({ source:"dailySalesInputForecourt_Save_Card_line", error: "Database query error", param: uploadedData.cardData });
+    }
+    return 0;
+}
+
+const dailySalesInputForecourt_Save_FCLubricant_header = async (client, req, res, UniqueID, MainHeaderID, uploadedData) => {
+    try{ 
+
+        const qExistID = `
+        select "ID" from dailysalesinput_lubricanthdr
+        where TransId=$1
+        `
+        let rExistID = await pool.query(qExistID, [UniqueID]);         
+        const ExistID = rExistID.rows[0]?.ID !== null ? rExistID.rows[0]?.ID : 0
+        if ( ExistID > 0 )
+        { 
+            const cashHeaderResult = await client.query(
+                `UPDATE dailysalesinput_lubricanthdr
+                            SET
+                                total = $1,
+                                input_id = $2
+                 WHERE "ID"=$3 AND TransId=$4 `,
+                [
+                    uploadedData.lubricantSalesData?.total,
+                    MainHeaderID,
+                    ExistID,
+                    UniqueID
+                ]
+            );
+            return ExistID
+        }else{
+            
+            const lubricantHeaderResult = await client.query(
+                `INSERT INTO dailysalesinput_lubricanthdr
+                                                    (
+                                                        total,
+                                                        input_id,
+                                                        TransId
+                                                    )
+                                        VALUES      ($1, $2, $3)
+                                        RETURNING   *`,
+                [
+                    uploadedData.lubricantSalesData?.total,
+                    MainHeaderID,
+                    UniqueID
+                ]
+            );
+            return lubricantHeaderResult.rows[0].ID
+        }
+    }catch (err) {
+        console.log(err)
+        await client.query("ROLLBACK");
+        res.status(500).json({ source:"dailySalesInputForecourt_Save_FCLubricant_header", error: "Database query error", param: uploadedData.lubricantSalesData });
+    }
+    return 0;
+}
+
+const dailySalesInputForecourt_Save_FCLubricant_Line = async (client, req, res, UniqueID, HeaderID, uploadedData) => {
+    try{ 
+        // CHECK IF UNIQUEID EXISTS        
+        const qExistID = `
+            select "ID" from dailysalesinput_lubricantlin
+            where lubricant_hdr=$1
+        `
+        let rExistID = await pool.query(qExistID, [HeaderID]); 
+        
+        const ExistID = rExistID.rows[0]?.ID !== null ? rExistID.rows[0]?.ID : 0
+        if ( ExistID > 0 )
+        { 
+            // DELETE LINE
+            await pool.query(`DELETE from dailysalesinput_lubricantlin WHERE lubricant_hdr=$1`, [HeaderID]);
+            console.log("DELETE", "Save FC Lubricant Line", HeaderID)
+        }
+
         await Promise.all(
             uploadedData.lubricantSalesData?.content?.map((item) => {
                 return new Promise(async (resolve, reject) => {
@@ -295,7 +712,7 @@ router.post("/dailySalesInputForecourt", upload.single("pos"), async (req, res) 
                                                     )
                                         VALUES      ($1, $2, $3, $4, $5, $6)`,
                         [
-                            savedLubricantId,
+                            HeaderID,
                             item?.lubricant,
                             item?.quantity,
                             item?.amount,
@@ -306,69 +723,197 @@ router.post("/dailySalesInputForecourt", upload.single("pos"), async (req, res) 
                     return resolve(true)
                 })
             })
-        )
+        )    
 
-        //saving fuel input header
-        const fuelHeaderResult = await client.query(
-            `INSERT INTO dailysalesinput_fuelhdr
-                                                (
-                                                    dailysalesinputid,
-                                                    fueldiscount,
-                                                    fueltaxexemption
-                                                )
-                                    VALUES      ($1, $2, $3)
-                                    RETURNING   *`,
-            [
-                savedMainId,
-                uploadedData.fuelData?.discount,
-                uploadedData.fuelData?.taxExemption
-            ]
-        );
-        let savedFuelId = fuelHeaderResult.rows[0].id
+    }catch (err) {
+        console.log(err)
+        await client.query("ROLLBACK");
+        res.status(500).json({ source:"dailySalesInputForecourt_Save_FCLubricant_Line", error: "Database query error", param: uploadedData.lubricantSalesData });
+    }
+    return 0;
+}
 
-        //saving fuel line items
+const dailySalesInputForecourt_Save_FuelSales_header = async (client, req, res, UniqueID, MainHeaderID, uploadedData) => {
+    try{ 
+
+        const qExistID = `
+        select "id" from dailysalesinput_fuelhdr
+        where transid=$1
+        `
+        let rExistID = await pool.query(qExistID, [UniqueID]);         
+        const ExistID = rExistID.rows[0]?.id !== null ? rExistID.rows[0]?.id : 0
+        if ( ExistID > 0 )
+        { 
+            const cashHeaderResult = await client.query(
+                `UPDATE dailysalesinput_fuelhdr
+                            SET
+                                dailysalesinputid=$1,
+                                fueldiscount=$2,
+                                fueltaxexemption=$3
+                 WHERE "id"=$4 AND transid=$5 `,
+                [
+                    MainHeaderID,
+                    uploadedData.fuelData?.discount,
+                    uploadedData.fuelData?.taxExemption, 
+                    ExistID,
+                    UniqueID
+                ]
+            );
+            return ExistID
+        }else{
+            const fuelHeaderResult = await client.query(
+                `INSERT INTO dailysalesinput_fuelhdr
+                                                    (
+                                                        dailysalesinputid,
+                                                        fueldiscount,
+                                                        fueltaxexemption,
+                                                        transid
+                                                    )
+                                        VALUES      ($1, $2, $3, $4)
+                                        RETURNING   *`,
+                [
+                    MainHeaderID,
+                    uploadedData.fuelData?.discount,
+                    uploadedData.fuelData?.taxExemption,
+                    UniqueID
+                ]
+            );
+            return fuelHeaderResult.rows[0].id
+        }
+    }catch (err) {
+        console.log(err)
+        await client.query("ROLLBACK");
+        res.status(500).json({ source:"dailySalesInputForecourt_Save_FuelSales_header", error: "Database query error", param: uploadedData.fuelData });
+    }
+    return 0;
+}
+
+const dailySalesInputForecourt_Save_FuelSales_Line = async (client, req, res, UniqueID, HeaderID, uploadedData) => {
+    try{ 
+        // CHECK IF UNIQUEID EXISTS        
+        const qExistID = `
+            select "id" from dailysalesinput_fuellin
+            where dailysalesinputfuelhdrid=$1
+        `
+        let rExistID = await pool.query(qExistID, [HeaderID]); 
+        
+        const ExistID = rExistID.rows[0]?.id !== null ? rExistID.rows[0]?.id : 0
+        if ( ExistID > 0 )
+        { 
+            // DELETE LINE
+            await pool.query(`DELETE from dailysalesinput_fuellin WHERE dailysalesinputfuelhdrid=$1`, [HeaderID]);
+            console.log("DELETE", "Save FuelSales Line", HeaderID)
+        }
+
         await Promise.all(
             uploadedData.fuelData?.content?.map((item) => {
                 return new Promise(async (resolve, reject) => {
-                    await client.query(
-                        `INSERT INTO dailysalesinput_fuellin
-                                                    (
-                                                        dailysalesinputfuelhdrid,
-                                                        fuelmasterid,
-                                                        transct,
-                                                        volume,
-                                                        amount
-                                                    )
-                                        VALUES      ($1, $2, $3, $4, $5)`,
-                        [
-                            savedFuelId,
-                            item?.fuelId,
-                            item?.transCt,
-                            item?.volume,
-                            item?.amount
-                        ]
-                    );
+
+                    if ( item?.transCt==0 && item?.volume == 0 && item?.amount == 0 )
+                    {
+                        // skip this items
+                    }else{
+                        await client.query(
+                            `INSERT INTO dailysalesinput_fuellin
+                                                        (
+                                                            dailysalesinputfuelhdrid,
+                                                            fuelmasterid,
+                                                            transct,
+                                                            volume,
+                                                            amount,
+                                                            price
+                                                        )
+                                            VALUES      ($1, $2, $3, $4, $5, $6)`,
+                            [
+                                HeaderID,
+                                item?.fuelId,
+                                item?.transCt,
+                                item?.volume,
+                                item?.amount,
+                                item?.price
+                            ]
+                        );
+                    }    
                     return resolve(true)
                 })
             })
         )
 
-        //saving discount input header
-        const discountHeaderResult = await client.query(
-            `INSERT INTO dailysalesinput_discounthdr
-                                                        (
-                                                            total,
-                                                            input_id
-                                                        )
-                                            VALUES      ($1, $2)
-                                            RETURNING   *`,
-            [
-                uploadedData.discountData?.total,
-                savedMainId
-            ]
-        );
-        let savedDiscountId = discountHeaderResult.rows[0].ID
-        //saving discount line items
+    }catch (err) {
+        console.log(err)
+        await client.query("ROLLBACK");
+        res.status(500).json({ source:"dailySalesInputForecourt_Save_FuelSales_Line", error: "Database query error", param: uploadedData.fuelData });
+    }
+    return 0;
+}
+
+const dailySalesInputForecourt_Save_Discount_header = async (client, req, res, UniqueID, MainHeaderID, uploadedData) => {
+    try{ 
+
+        const qExistID = `
+        select "ID" from dailysalesinput_discounthdr
+        where TransId=$1
+        `
+        let rExistID = await pool.query(qExistID, [UniqueID]);         
+        const ExistID = rExistID.rows[0]?.ID !== null ? rExistID.rows[0]?.ID : 0
+        if ( ExistID > 0 )
+        { 
+            const cashHeaderResult = await client.query(
+                `UPDATE dailysalesinput_discounthdr
+                            SET
+                                total=$1,
+                                input_id=$2
+                 WHERE "ID"=$3 AND TransId=$4 `,
+                [
+                    uploadedData.discountData?.total,
+                    MainHeaderID, 
+                    ExistID,
+                    UniqueID
+                ]
+            );
+            return ExistID
+        }else{ 
+            const discountHeaderResult = await client.query(
+                `INSERT INTO dailysalesinput_discounthdr
+                                                            (
+                                                                total,
+                                                                input_id,
+                                                                TransId
+                                                            )
+                                                VALUES      ($1, $2, $3)
+                                                RETURNING   *`,
+                [
+                    uploadedData.discountData?.total,
+                    MainHeaderID,
+                    UniqueID
+                ]
+            );
+            return discountHeaderResult.rows[0].ID
+        }
+    }catch (err) {
+        console.log(err)
+        await client.query("ROLLBACK");
+        res.status(500).json({ source:"dailySalesInputForecourt_Save_Discount_header", error: "Database query error", param: uploadedData.discountData });
+    }
+    return 0;
+}
+
+const dailySalesInputForecourt_Save_Discount_Line = async (client, req, res, UniqueID, HeaderID, uploadedData) => {
+    try{ 
+        // CHECK IF UNIQUEID EXISTS        
+        const qExistID = `
+            select "ID" from dailysalesinput_discountlin
+            where discount_hdr=$1
+        `
+        let rExistID = await pool.query(qExistID, [HeaderID]); 
+        
+        const ExistID = rExistID.rows[0]?.ID !== null ? rExistID.rows[0]?.ID : 0
+        if ( ExistID > 0 )
+        { 
+            // DELETE LINE
+            await pool.query(`DELETE from dailysalesinput_discountlin WHERE discount_hdr=$1`, [HeaderID]);
+            console.log("DELETE", "Save Discount Line", HeaderID)
+        }
         await Promise.all(
             uploadedData.discountData?.content?.map((item) => {
                 return new Promise(async (resolve, reject) => {
@@ -382,7 +927,7 @@ router.post("/dailySalesInputForecourt", upload.single("pos"), async (req, res) 
                                                             )
                                                 VALUES      ($1, $2, $3, $4)`,
                         [
-                            savedDiscountId,
+                            HeaderID,
                             item?.discount,
                             item?.quantity,
                             item?.amount
@@ -393,24 +938,84 @@ router.post("/dailySalesInputForecourt", upload.single("pos"), async (req, res) 
             })
         )
 
-        //saving receivable input header
-        const receivableHeaderResult = await client.query(
-            `INSERT INTO dailysalesinput_receivablehdr
-                            (
-                                total,
-                                input_id
-                            )
-                VALUES      ($1, $2)
-                RETURNING   *`,
-            [
-                uploadedData.recievableData?.total,
-                savedMainId
-            ]
-        );
-        let savedReceivableId = receivableHeaderResult.rows[0].ID
-        //saving receivable line items
+
+    }catch (err) {
+        console.log(err)
+        await client.query("ROLLBACK");
+        res.status(500).json({ source:"dailySalesInputForecourt_Save_Discount_Line", error: "Database query error", param: uploadedData.discountData });
+    }
+    return 0;
+}
+
+const dailySalesInputForecourt_Save_Receivable_header = async (client, req, res, UniqueID, MainHeaderID, uploadedData) => {
+    try{ 
+
+        const qExistID = `
+        select "ID" from dailysalesinput_receivablehdr
+        where TransId=$1
+        `
+        let rExistID = await pool.query(qExistID, [UniqueID]);         
+        const ExistID = rExistID.rows[0]?.ID !== null ? rExistID.rows[0]?.ID : 0
+        if ( ExistID > 0 )
+        { 
+            const cashHeaderResult = await client.query(
+                `UPDATE dailysalesinput_receivablehdr
+                            SET
+                                total=$1,
+                                input_id=$2
+                 WHERE "ID"=$3 AND TransId=$4 `,
+                [
+                    uploadedData.receivableData?.total,
+                    MainHeaderID, 
+                    ExistID,
+                    UniqueID
+                ]
+            );
+            return ExistID
+        }else{ 
+            const receivableHeaderResult = await client.query(
+                `INSERT INTO dailysalesinput_receivablehdr
+                                (
+                                    total,
+                                    input_id,
+                                    TransId
+                                )
+                    VALUES      ($1, $2, $3)
+                    RETURNING   *`,
+                [
+                    uploadedData.receivableData?.total,
+                    MainHeaderID,
+                    UniqueID
+                ]
+            );
+            return receivableHeaderResult.rows[0].ID
+        }
+    }catch (err) {
+        console.log(err)
+        await client.query("ROLLBACK");
+        res.status(500).json({ source:"dailySalesInputForecourt_Save_Receivable_header", error: "Database query error", param: uploadedData.receivableData });
+    }
+    return 0;
+}
+
+const dailySalesInputForecourt_Save_Receivable_Line = async (client, req, res, UniqueID, HeaderID, uploadedData) => {
+    try{ 
+        // CHECK IF UNIQUEID EXISTS        
+        const qExistID = `
+            select "ID" from dailysalesinput_receivablelin
+            where receivable_hdr=$1
+        `
+        let rExistID = await pool.query(qExistID, [HeaderID]); 
+        
+        const ExistID = rExistID.rows[0]?.ID !== null ? rExistID.rows[0]?.ID : 0
+        if ( ExistID > 0 )
+        { 
+            // DELETE LINE
+            await pool.query(`DELETE from dailysalesinput_receivablelin WHERE receivable_hdr=$1`, [HeaderID]);
+            console.log("DELETE", "Save Receivable Line", HeaderID)
+        }
         await Promise.all(
-            uploadedData.recievableData?.content?.map((item) => {
+            uploadedData.receivableData?.content?.map((item) => {
                 return new Promise(async (resolve, reject) => {
                     await client.query(
                         `INSERT INTO dailysalesinput_receivablelin
@@ -423,7 +1028,7 @@ router.post("/dailySalesInputForecourt", upload.single("pos"), async (req, res) 
                                         )
                             VALUES      ($1, $2, $3, $4, $5)`,
                         [
-                            savedReceivableId,
+                            HeaderID,
                             item?.employee,
                             item?.amount,
                             item?.description,
@@ -435,22 +1040,81 @@ router.post("/dailySalesInputForecourt", upload.single("pos"), async (req, res) 
             })
         )
 
-        //saving check input header
-        const checkHeaderResult = await client.query(
-            `INSERT INTO dailysalesinput_checkhdr
-                        (
-                            total,
-                            input_id
-                        )
-            VALUES      ($1, $2)
-            RETURNING   *`,
-            [
-                uploadedData.checkData?.total,
-                savedMainId
-            ]
-        );
-        let savedCheckId = checkHeaderResult.rows[0].ID
-        //saving card line items
+    }catch (err) {
+        console.log(err)
+        await client.query("ROLLBACK");
+        res.status(500).json({ source:"dailySalesInputForecourt_Save_Receivable_Line", error: "Database query error", param: uploadedData.receivableData });
+    }
+    return 0;
+}
+
+const dailySalesInputForecourt_Save_Check_header = async (client, req, res, UniqueID, MainHeaderID, uploadedData) => {
+    try{ 
+
+        const qExistID = `
+        select "ID" from dailysalesinput_checkhdr
+        where TransId=$1
+        `
+        let rExistID = await pool.query(qExistID, [UniqueID]);         
+        const ExistID = rExistID.rows[0]?.ID !== null ? rExistID.rows[0]?.ID : 0
+        if ( ExistID > 0 )
+        { 
+            const cashHeaderResult = await client.query(
+                `UPDATE dailysalesinput_checkhdr
+                            SET
+                                total=$1,
+                                input_id=$2
+                 WHERE "ID"=$3 AND TransId=$4 `,
+                [
+                    uploadedData.checkData?.total,
+                    MainHeaderID, 
+                    ExistID,
+                    UniqueID
+                ]
+            );
+            return ExistID
+        }else{ 
+            const checkHeaderResult = await client.query(
+                `INSERT INTO dailysalesinput_checkhdr
+                            (
+                                total,
+                                input_id,
+                                TransId
+                            )
+                VALUES      ($1, $2, $3)
+                RETURNING   *`,
+                [
+                    uploadedData.checkData?.total,
+                    MainHeaderID,
+                    UniqueID
+                ]
+            );
+            return checkHeaderResult.rows[0].ID
+        }
+    }catch (err) {
+        console.log(err)
+        await client.query("ROLLBACK");
+        res.status(500).json({ source:"dailySalesInputForecourt_Save_Check_header", error: "Database query error", param: uploadedData.checkData });
+    }
+    return 0;
+}
+
+const dailySalesInputForecourt_Save_Check_Line = async (client, req, res, UniqueID, HeaderID, uploadedData) => {
+    try{ 
+        // CHECK IF UNIQUEID EXISTS        
+        const qExistID = `
+            select "ID" from dailysalesinput_checklin
+            where check_hdr=$1
+        `
+        let rExistID = await pool.query(qExistID, [HeaderID]); 
+        
+        const ExistID = rExistID.rows[0]?.ID !== null ? rExistID.rows[0]?.ID : 0
+        if ( ExistID > 0 )
+        { 
+            // DELETE LINE
+            await pool.query(`DELETE from dailysalesinput_checklin WHERE check_hdr=$1`, [HeaderID]);
+            console.log("DELETE", "Save Check Line", HeaderID)
+        }
         await Promise.all(
             uploadedData.checkData?.content?.map((item) => {
                 return new Promise(async (resolve, reject) => {
@@ -460,66 +1124,101 @@ router.post("/dailySalesInputForecourt", upload.single("pos"), async (req, res) 
                                                         check_hdr,
                                                         payment_form,
                                                         amount,
-                                                        details
+                                                        details,
+                                                        bankno,
+                                                        checkno
                                                     )
-                                        VALUES      ($1, $2, $3, $4)`,
+                                        VALUES      ($1, $2, $3, $4, $5, $6)`,
                         [
-                            savedCheckId,
+                            HeaderID,
                             item?.paymentForm,
                             item?.amount,
-                            item?.details
+                            item?.details,
+                            item?.bankno,
+                            item?.checkno,
                         ]
                     );
                     return resolve(true)
                 })
             })
         )
-
-        //saving variance data
-        await client.query(
-            `INSERT INTO dailysalesinput_variance
-                (
-                    input_id,
-                    grand_total,
-                    department_total,
-                    variance
-                )
-            VALUES      ($1, $2, $3, $4)
-            RETURNING   *`,
-            [
-                savedMainId,
-                uploadedData.salesGrandTotal,
-                uploadedData.netDepartmentTotal,
-                uploadedData.variance
-            ]
-        );
- 
-
-        await client.query("COMMIT");
-
-        console.log("success: " + savedMainId)
-        res.status(201).json({ success: true, message: "successfully saved with an id of " + savedMainId });
-    }
-    catch (err) {
+    }catch (err) {
         console.log(err)
         await client.query("ROLLBACK");
+        res.status(500).json({ source:"dailySalesInputForecourt_Save_Check_Line", error: "Database query error", param: uploadedData.checkData });
+    }
+    return 0;
+}
 
-        res.status(500).json({ error: "Database query error"
-            , params :
-            [
-                uploadedData.filterData?.selectedMode,
-                uploadedData.filterData?.selectedStation,
-                uploadedData.filterData?.selectedShift,
-                uploadedData.filterData?.selectedShiftManager[0],
-                uploadedData.filterData?.effectivityDate,
-                uploadedData?.comment
-            ]
-         });
+const dailySalesInputForecourt_Save_Variance = async (client, req, res, UniqueID, MainHeaderID, uploadedData) => {
+    try{ 
+
+        const qExistID = `
+        select "ID" from dailysalesinput_variance
+        where TransId=$1
+        `
+        let rExistID = await pool.query(qExistID, [UniqueID]);         
+        const ExistID = rExistID.rows[0]?.ID !== null ? rExistID.rows[0]?.ID : 0
+        if ( ExistID > 0 )
+        { 
+            const cashHeaderResult = await client.query(
+                `UPDATE dailysalesinput_variance
+                    SET
+                        input_id=$1,
+                        grand_total=$2,
+                        department_total=$3,
+                        variance=$4
+                 WHERE "ID"=$5 AND TransId=$6 `,
+                [
+                    MainHeaderID, 
+                    uploadedData.salesGrandTotal,
+                    uploadedData.netDepartmentTotal,
+                    uploadedData.variance,
+                    ExistID,
+                    UniqueID
+                ]
+            );
+            return ExistID
+        }else{ 
+            await client.query(
+                `INSERT INTO dailysalesinput_variance
+                    (
+                        input_id,
+                        grand_total,
+                        department_total,
+                        variance,
+                        TransId
+                    )
+                VALUES      ($1, $2, $3, $4, $5)
+                RETURNING   *`,
+                [
+                    MainHeaderID,
+                    uploadedData.salesGrandTotal,
+                    uploadedData.netDepartmentTotal,
+                    uploadedData.variance,
+                    UniqueID
+                ]
+            ); 
+            return 0;
+        }
+    }catch (err) {
+        console.log(err)
+        await client.query("ROLLBACK");
+        res.status(500).json({ source:"dailySalesInputForecourt_Save_Variance", error: "Database query error", param: uploadedData });
     }
-    finally {
-        client.release();
-    }
-});
+    return 0;
+}
+
+
+
+
+
+ 
+
+
+
+
+
 
 router.get("/getDailySalesForecourtData", async (req, res) => {
     try {

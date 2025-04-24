@@ -9,7 +9,7 @@ const LubricantSalesAccordion = ({
     lubricantSalesData,
     setLubricantSalesData,
     fuelLubes,
-    employee
+    employeeList
 }) => {
     const [lubricantSales, setLubricantSales] = useState({
         title: "Forecourt Lubricant Sales",
@@ -24,6 +24,7 @@ const LubricantSalesAccordion = ({
     const [purpose, setPurpose] = useState('add');
     const [editData, setEditData] = useState(undefined);
 
+
     return (
         <div className="bg-white rounded-lg p-4">
             <AddLubricant
@@ -36,8 +37,7 @@ const LubricantSalesAccordion = ({
                 editData={editData}
                 setEditData={setEditData}
                 fuelLubes={fuelLubes}
-                employee={employee}
-
+                employeeList={employeeList}
             />
 
             <div className="w-full flex justify-end py-4">
